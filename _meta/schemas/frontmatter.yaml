@@ -1,0 +1,73 @@
+# Echo Wiki Frontmatter Schema
+# Version: 1 (matches wiki.config.yaml schema_version)
+#
+# Defines required and optional frontmatter fields for all markdown files.
+# Referenced by: .skills/compile/SKILL.md, .skills/lint/SKILL.md, hooks/pre-commit.sh
+
+compiled_shared:
+  required_fields:
+    title: string
+    type:
+      enum: [concept, person, tool, source-summary]
+    created: date  # YYYY-MM-DD
+    last_updated: date
+    last_verified: date
+    decay_rate:
+      enum: [fast, medium, slow]
+    confidence:
+      enum: [high, medium, speculative]
+    tags: list[string]  # Values from wiki.config.yaml domains
+    sources: list[wikilink]  # At least one entry required
+    related: list[wikilink]
+    summary: string  # One-line for index files
+
+compiled_type_specific:
+  concept:
+    domain: list[string]
+    prerequisites: list[wikilink]
+  person:
+    role: string
+    affiliations: list[string]
+    follows: list[url]
+  tool:
+    category:
+      enum: [framework, platform, service, product]
+    repo: url
+    maintained: boolean
+  source-summary:
+    source_url: url
+    source_type:
+      enum: [blog, paper, tweet, substack, github, podcast, video]
+    author: string
+    source_date: date
+
+raw:
+  required_fields:
+    title: string
+    source_url: url
+    source_type:
+      enum: [blog, paper, tweet, substack, github, podcast, video]
+    source_date: date
+    author: string
+    ingested: date
+    ingestion_tool:
+      enum: [tavily, firecrawl, local]
+    tags: list[string]
+
+enums:
+  type: [concept, person, tool, source-summary]
+  decay_rate: [fast, medium, slow]
+  confidence: [high, medium, speculative]
+  source_type: [blog, paper, tweet, substack, github, podcast, video]
+  tool_category: [framework, platform, service, product]
+  ingestion_tool: [tavily, firecrawl, local]
+
+decay_rate_thresholds:
+  fast: 30    # days until considered stale
+  medium: 90
+  slow: 365
+
+confidence_rules:
+  high: "Well-sourced from multiple references or authoritative primary sources"
+  medium: "Single source, or well-known but not independently verified"
+  speculative: "Inferred, opinion-based, from unverified sources, or emerging claims"

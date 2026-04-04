@@ -1,0 +1,46 @@
+# Echo Wiki Configuration
+# This is the single file users edit to customize their wiki instance.
+# See README.md for setup instructions.
+
+wiki:
+  name: "Echo Theory Labs Wiki"
+  description: "Applied AI R&D knowledge base — frontier models, agents, harness engineering, evals"
+
+domains:
+  - name: "llm"
+    label: "Large Language Models"
+    decay_rate_override: fast
+  - name: "agents"
+    label: "AI Agents & Orchestration"
+    decay_rate_override: fast
+  - name: "harness-engineering"
+    label: "Harness Engineering"
+  - name: "evals"
+    label: "Evaluations & Benchmarks"
+    decay_rate_override: fast
+  - name: "mcp"
+    label: "Model Context Protocol"
+  - name: "fine-tuning"
+    label: "Fine-Tuning & Training"
+
+source_types:
+  - blog
+  - paper
+  - tweet
+  - substack
+  - github
+  - podcast
+  - video
+
+ingestion:
+  tavily:
+    enabled: true
+  firecrawl:
+    enabled: false
+    api_key: "${FIRECRAWL_API_KEY}"
+
+defaults:
+  decay_rate: fast
+  confidence: medium
+
+schema_version: 1
