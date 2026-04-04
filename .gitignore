@@ -4,6 +4,17 @@
 # Obsidian workspace (user-specific UI state)
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
+.obsidian/core-plugins.json
+.obsidian/community-plugins.json
+.obsidian/hotkeys.json
+.obsidian/plugins/
+*.canvas
+*.base
+
+# Node modules (VitePress)
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
 
 # Generated logs
 output/reports/token-count.log
