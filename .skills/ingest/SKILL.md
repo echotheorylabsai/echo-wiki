@@ -99,7 +99,7 @@ Field rules:
 - `title`: from the source's heading or title
 - `source_url`: the original URL (or "local" for file imports)
 - `source_type`: as determined in Step 1
-- `source_date`: extract from the source if possible. If not found, use today's date.
+- `source_date`: extract from the source if possible. If not found, use today's date and add a note in the article body that the date is approximate.
 - `author`: extract from byline or metadata. Use "Unknown" if not found.
 - `ingested`: today's date
 - `ingestion_tool`: which tool was used (tavily, firecrawl, or local)

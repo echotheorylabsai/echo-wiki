@@ -10,7 +10,7 @@ Validate the compiled wiki for structural and semantic issues. Produce an action
 ## Input
 
 - Optional scope: specific file path, domain tag, or `all` (default: all)
-- Examples: `/lint`, `/lint all`, `/lint compiled/concepts/`
+- Examples: `/lint`, `/lint all`, `/lint compiled/concepts/`, `/lint --domain llm`
 
 ## Context Loading
 
