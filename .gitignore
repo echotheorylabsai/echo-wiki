@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Obsidian workspace (user-specific UI state)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Generated logs
+output/reports/token-count.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor swap files
+*.swp
+*.swo
+*~
