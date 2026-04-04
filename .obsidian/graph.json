@@ -1,0 +1,39 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:compiled/concepts",
+      "color": { "a": 1, "rgb": 4491519 }
+    },
+    {
+      "query": "path:compiled/people",
+      "color": { "a": 1, "rgb": 4504456 }
+    },
+    {
+      "query": "path:compiled/tools",
+      "color": { "a": 1, "rgb": 16746564 }
+    },
+    {
+      "query": "path:compiled/sources",
+      "color": { "a": 1, "rgb": 8947848 }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": true,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.5,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1,
+  "close": false
+}
