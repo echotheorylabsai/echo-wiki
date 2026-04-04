@@ -5,10 +5,6 @@ export default defineConfig({
   description: 'A generic, LLM-maintained knowledge base system',
   base: '/echo-wiki/',
 
-  head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/echo-wiki/logo.svg' }],
-  ],
-
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/getting-started' },
