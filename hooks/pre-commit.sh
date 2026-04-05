@@ -57,13 +57,15 @@ while IFS= read -r f; do
     [ -n "$f" ] && STAGED_WS+=("$f")
 done < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/workspaces/.*\.md$' || true)
 
+# On Bash 3.2 (macOS default), empty arrays + set -u = "unbound variable".
+# Use ${arr[@]+"${arr[@]}"} pattern to safely expand potentially-empty arrays.
 if [ ${#STAGED_KB[@]} -eq 0 ] && [ ${#STAGED_WS[@]} -eq 0 ]; then
     exit 0
 fi
 
 # --- Phase 1: KB file validation (full schema) ---
 
-for file in "${STAGED_KB[@]}"; do
+for file in ${STAGED_KB[@]+"${STAGED_KB[@]}"}; do
     [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
     bn=$(basename "$file")
@@ -117,7 +119,7 @@ done
 
 # --- Phase 1b: Workspace file validation (light schema) ---
 
-for file in "${STAGED_WS[@]}"; do
+for file in ${STAGED_WS[@]+"${STAGED_WS[@]}"}; do
     [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
     bn=$(basename "$file")
@@ -146,9 +148,9 @@ done
 
 # --- Phase 2: Wikilink resolution ---
 
-ALL_STAGED=("${STAGED_KB[@]}" "${STAGED_WS[@]}")
+ALL_STAGED=(${STAGED_KB[@]+"${STAGED_KB[@]}"} ${STAGED_WS[@]+"${STAGED_WS[@]}"})
 
-for file in "${ALL_STAGED[@]}"; do
+for file in ${ALL_STAGED[@]+"${ALL_STAGED[@]}"}; do
     [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
 
