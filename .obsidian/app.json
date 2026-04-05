@@ -1,4 +1,8 @@
 {
+  "userIgnoreFilters": [
+    "_index.md",
+    "_backlinks.md"
+  ],
   "useMarkdownLinks": false,
   "newFileLocation": "current",
   "newLinkFormat": "shortest",
