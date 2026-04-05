@@ -19,6 +19,7 @@ frontmatter() {
 # --- Phase 0: Structure integrity check ---
 
 PROTECTED_PATHS=(
+  "wiki"
   "wiki/_index.md"
   "wiki/_backlinks.md"
   "wiki/concepts"
@@ -46,16 +47,24 @@ fi
 
 # --- Get staged wiki files ---
 
-STAGED_KB=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/(concepts|people|tools|sources)/.*\.md$' || true)
-STAGED_WS=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/workspaces/.*\.md$' || true)
+STAGED_KB=()
+while IFS= read -r f; do
+    [ -n "$f" ] && STAGED_KB+=("$f")
+done < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/(concepts|people|tools|sources)/.*\.md$' || true)
 
-if [ -z "$STAGED_KB" ] && [ -z "$STAGED_WS" ]; then
+STAGED_WS=()
+while IFS= read -r f; do
+    [ -n "$f" ] && STAGED_WS+=("$f")
+done < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/workspaces/.*\.md$' || true)
+
+if [ ${#STAGED_KB[@]} -eq 0 ] && [ ${#STAGED_WS[@]} -eq 0 ]; then
     exit 0
 fi
 
 # --- Phase 1: KB file validation (full schema) ---
 
-for file in $STAGED_KB; do
+for file in "${STAGED_KB[@]}"; do
+    [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
     bn=$(basename "$file")
 
@@ -108,7 +117,8 @@ done
 
 # --- Phase 1b: Workspace file validation (light schema) ---
 
-for file in $STAGED_WS; do
+for file in "${STAGED_WS[@]}"; do
+    [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
     bn=$(basename "$file")
 
@@ -136,13 +146,16 @@ done
 
 # --- Phase 2: Wikilink resolution ---
 
-ALL_STAGED="$STAGED_KB $STAGED_WS"
+ALL_STAGED=("${STAGED_KB[@]}" "${STAGED_WS[@]}")
 
-for file in $ALL_STAGED; do
+for file in "${ALL_STAGED[@]}"; do
+    [ -z "$file" ] && continue
     fp="$WIKI_ROOT/$file"
 
     # Extract all [[link]] and [[link|alias]] patterns
-    grep -oE '\[\[[^]]+\]\]' "$fp" 2>/dev/null | sed 's/\[\[//;s/\]\]//;s/|.*//' | sort -u | while IFS= read -r link; do
+    # Use process substitution to keep the while loop in the current shell,
+    # so writes to $ERR_FILE are not lost in a subshell.
+    while IFS= read -r link; do
         [ -z "$link" ] && continue
 
         # All wikilinks resolve within wiki/
@@ -151,7 +164,7 @@ for file in $ALL_STAGED; do
         if [ ! -f "$target" ]; then
             echo "$file: broken wikilink [[$link]]" >> "$ERR_FILE"
         fi
-    done
+    done < <(grep -oE '\[\[[^]]+\]\]' "$fp" 2>/dev/null | sed 's/\[\[//;s/\]\]//;s/|.*//' | sort -u)
 done
 
 # --- Report ---

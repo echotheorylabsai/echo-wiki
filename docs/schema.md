@@ -46,7 +46,7 @@ tags: ["ai"]
 ---
 ```
 
-Only `title`, `created`, `author`, and `tags` are required. Optional fields: `summary`, `related`, `sources`.
+Only `title` and `created` are required. Optional fields: `author`, `tags`, `summary`, `related`, `sources`.
 
 ## Raw Source Frontmatter
 

@@ -240,5 +240,5 @@ Linked from:
 - **ALWAYS merge** into existing articles when they exist.
 - **ALWAYS include complete frontmatter** on every file — no optional fields skipped.
 - **ALWAYS add at least one source** to every compiled article.
-- **Use wikilinks** for all cross-references, both in body text and frontmatter.
+- **Use wikilinks** for all cross-references in body text and `related:` frontmatter. The `sources:` field uses plain string paths (not wikilinks).
 - **Tags must come from** `wiki.config.yaml` domains list.

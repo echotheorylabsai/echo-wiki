@@ -45,5 +45,5 @@ For each article in `wiki/`, scan ALL other files (KB + workspaces) for wikilink
 
 When regenerating, scan ALL `.md` files in `wiki/` recursively. Skip:
 - `_index.md` and `_backlinks.md` themselves
-- Files in `.obsidian/`
+- Files in `wiki/.obsidian/`
 - Non-`.md` files

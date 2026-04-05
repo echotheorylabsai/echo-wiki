@@ -30,6 +30,8 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
   +--------------+
 ```
 
+> `/rebuild` is only needed after manually deleting raw source files. Normal workflow is `/ingest` → `/compile`.
+
 **The LLM writes all wiki content.** You provide sources, the LLM maintains `wiki/`. You never edit KB articles directly — just read them in Obsidian. You can create your own notes and drafts in `wiki/workspaces/`.
 
 ```

@@ -3,9 +3,9 @@
 #
 # Defines required and optional frontmatter fields for all markdown files.
 # Referenced by: .claude/skills/compile/SKILL.md, .claude/skills/lint/SKILL.md, hooks/pre-commit.sh
-# wiki/ articles use compiled_shared; workspace files under wiki/workspaces/ use workspace schema
+# wiki/ articles use kb_shared; workspace files under wiki/workspaces/ use workspace schema
 
-compiled_shared:
+kb_shared:
   required_fields:
     title: string
     type:
@@ -22,7 +22,7 @@ compiled_shared:
     related: list[wikilink]
     summary: string  # One-line for index files
 
-compiled_type_specific:
+kb_type_specific:
   concept:
     domain: list[string]
     prerequisites: list[wikilink]
@@ -59,9 +59,9 @@ workspace:
   required_fields:
     title: string
     created: date  # YYYY-MM-DD
+  optional_fields:
     author: string  # actor name (human name or agent identifier)
     tags: list[string]
-  optional_fields:
     summary: string
     related: list[wikilink]
     sources: list[string]

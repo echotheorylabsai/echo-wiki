@@ -43,7 +43,7 @@ For every article in scope (excluding `_index.md` and `_backlinks.md`):
 
 ### Check 2: Broken Wikilinks
 
-For every `[[wikilink]]` in every compiled file:
+For every `[[wikilink]]` in every file in `wiki/` (KB articles and workspace files):
 - Extract the link path (strip display alias after `|`)
 - Verify target file exists within `wiki/`: `wiki/${link}.md`
 - No special handling for `raw/` prefix (raw references are plain strings in frontmatter, not wikilinks)

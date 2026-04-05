@@ -114,7 +114,9 @@ This is a non-destructive operation — it only reads content and rewrites the t
 
 ```
 /lint                    # Lint entire wiki
+/lint all                # Lint entire wiki (explicit)
 /lint wiki/concepts/     # Lint specific directory
+/lint --domain llm       # Lint articles tagged with a specific domain
 ```
 
 Produces a report at `output/reports/lint-<date>.md` with 7 checks:

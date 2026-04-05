@@ -78,9 +78,9 @@ ln -sf ../../hooks/token-count.sh .git/hooks/post-commit
 Sample output:
 ```
 [2026-04-05] Wiki Token Estimate
-  raw/        12,400 words  ~  16,120 tokens
-  wiki/        8,200 words  ~  10,660 tokens
-  TOTAL       20,600 words  ~  26,780 tokens
+  raw/        12400 words  ~  16120 tokens
+  wiki/       8200 words   ~  10660 tokens
+  TOTAL       20600 words  ~  26780 tokens
 
   Context usage: ~2.7% of 1M window
 ```
