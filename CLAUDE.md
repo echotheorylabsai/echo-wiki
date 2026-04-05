@@ -6,12 +6,13 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 - `/ingest <url-or-path>` — Fetch source content, save to `raw/`
 - `/compile <path|all>` — Compile raw sources into wiki articles in `compiled/`
+- `/rebuild` — Wipe `compiled/` and recompile from all remaining raw sources
 - `/lint [scope]` — Semantic validation, report to `output/reports/`
 
 ## Rules
 
 1. **`compiled/` is LLM-only.** Write via `/compile` skill only. Never edit directly.
-2. **`raw/` is append-only.** Never modify or delete ingested sources.
+2. **`raw/` is append-only during normal operation.** Do not modify or delete sources as part of `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`.
 3. **Frontmatter required** on all files. Schema: `_meta/schemas/frontmatter.yaml`
 4. **Wikilinks** for all cross-references: `[[concepts/name|Display Name]]`
 5. **Tags** must match domains defined in `_meta/wiki.config.yaml`
