@@ -11,6 +11,9 @@ wiki/.obsidian/plugins/
 *.canvas
 *.base
 
+# Superpowers specs and plans (local dev artifacts)
+docs/superpowers/
+
 # Node modules (VitePress)
 node_modules/
 docs/.vitepress/dist/
