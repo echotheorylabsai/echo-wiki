@@ -1,6 +1,8 @@
 # Index Update — Reference
 
-Regenerate `_index.md` and `_backlinks.md`. Triggered by compile, not standalone.
+Regenerate `_index.md` and `_backlinks.md`. Covers ALL content in `wiki/` (KB articles + workspace content).
+
+Triggered by `/compile`, `/rebuild`, and `/index`.
 
 ## _index.md Format
 
@@ -18,9 +20,13 @@ Regenerate `_index.md` and `_backlinks.md`. Triggered by compile, not standalone
 
 ## Sources
 - [[sources/<name>|<Title>]] — <one-line summary>
+
+## Workspaces
+### <workspace-name>
+- [[workspaces/<workspace-name>/<file>|<Title>]] — <summary or title>
 ```
 
-Sorted alphabetically within each section.
+Sorted alphabetically within each section. For workspace files without a `summary` frontmatter field, use just the title.
 
 ## _backlinks.md Format
 
@@ -30,7 +36,14 @@ Sorted alphabetically within each section.
 ## [[<type>/<name>]]
 Linked from:
 - [[<type>/<article>]]
-- [[<type>/<article>]]
+- [[workspaces/<workspace>/<file>]]
 ```
 
-For each article in `compiled/`, list every article that contains a wikilink to it.
+For each article in `wiki/`, scan ALL other files (KB + workspaces) for wikilinks pointing to it. Include cross-zone references.
+
+## Scan Scope
+
+When regenerating, scan ALL `.md` files in `wiki/` recursively. Skip:
+- `_index.md` and `_backlinks.md` themselves
+- Files in `.obsidian/`
+- Non-`.md` files
