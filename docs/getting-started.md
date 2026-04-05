@@ -50,12 +50,13 @@ ln -sf ../../hooks/token-count.sh .git/hooks/post-commit
 
 ### 5. Open in Obsidian
 
-Open Obsidian → File → Open folder as vault → select your wiki directory.
+Open Obsidian → File → Open folder as vault → select the **`wiki/`** directory (not the repo root).
 
 The vault comes pre-configured with:
 - Wikilinks enabled
-- Graph view color groups (concepts=blue, people=green, tools=orange, sources=gray)
+- Graph view color groups (concepts=blue, people=green, tools=orange, sources=gray, workspaces=purple)
 - Frontmatter display
+- A default `workspaces/my-notes/` directory for your personal notes
 
 ### 6. Ingest your first source
 
@@ -63,7 +64,7 @@ The vault comes pre-configured with:
 /ingest https://example.com/article
 ```
 
-The agent will fetch the content, save it to `raw/`, then compile it into wiki articles in `compiled/`.
+The agent will fetch the content, save it to `raw/`, then compile it into wiki articles in `wiki/`.
 
 ## Directory Structure
 
@@ -73,12 +74,20 @@ my-wiki/
 │   ├── wiki.config.yaml      # Your wiki configuration
 │   ├── prompts/               # Reference docs for each operation
 │   └── schemas/               # Frontmatter validation schema
-├── raw/                       # Source documents (append-only)
-├── compiled/                  # LLM-maintained wiki (read-only for humans)
+├── raw/                       # Source documents (append-only, backend)
+├── wiki/                      # Obsidian vault (user-facing)
+│   ├── concepts/              # KB: compiled articles
+│   ├── people/
+│   ├── tools/
+│   ├── sources/
+│   ├── workspaces/            # Your notes + agent workspaces
+│   │   └── my-notes/          # Default human workspace
+│   ├── _index.md              # Master index
+│   └── _backlinks.md          # Cross-reference map
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
-├── .skills/                   # Agent Skills (ingest, compile, rebuild, lint)
-├── .obsidian/                 # Vault config (graph colors, wikilinks)
+├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)
+├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
 └── README.md
@@ -87,5 +96,6 @@ my-wiki/
 ## What's Next?
 
 - [Configure your domains](/configuration) for your specific use case
-- [Learn about the skills](/skills) — ingest, compile, rebuild, and lint
+- [Learn about the skills](/skills) — ingest, compile, rebuild, lint, and index
 - [Set up validation](/validation) — pre-commit hooks and semantic linting
+- Create notes in `wiki/workspaces/my-notes/` and run `/index` to include them

@@ -1,6 +1,8 @@
 # Skills
 
-Echo Wiki uses [Agent Skills](https://agentskills.io) to manage the wiki pipeline. Skills are stored in `.skills/` and work with any compatible agent.
+Echo Wiki uses [Agent Skills](https://agentskills.io) to manage the wiki pipeline. Skills are stored in `.claude/skills/` and work with any compatible agent.
+
+All skills run a structure check (Step 0) before starting. If any required wiki paths are missing, the skill recreates them automatically. See `_meta/prompts/structure-check.md` for details.
 
 ## /ingest
 
@@ -40,24 +42,24 @@ What it does:
 
 What it does:
 1. Reads raw source(s)
-2. Creates source-summary in `compiled/sources/`
+2. Creates source-summary in `wiki/sources/`
 3. Extracts concepts, people, and tools
 4. Creates new articles or merges into existing ones (never overwrites)
 5. Adds `[[wikilinks]]` between related articles
-6. Regenerates `_index.md` and `_backlinks.md`
+6. Regenerates `_index.md` and `_backlinks.md` (includes workspace content)
 
-**Four compiled categories:**
+**Four KB categories:**
 
 | Type | Directory | Examples |
 |---|---|---|
-| Concepts | `compiled/concepts/` | Ideas, theories, patterns |
-| People | `compiled/people/` | Researchers, authors, key figures |
-| Tools | `compiled/tools/` | Software, platforms, frameworks |
-| Sources | `compiled/sources/` | Summary of each raw source |
+| Concepts | `wiki/concepts/` | Ideas, theories, patterns |
+| People | `wiki/people/` | Researchers, authors, key figures |
+| Tools | `wiki/tools/` | Software, platforms, frameworks |
+| Sources | `wiki/sources/` | Summary of each raw source |
 
 ## /rebuild
 
-**Wipe `compiled/` and recompile from all remaining raw sources.**
+**Wipe KB type directories and recompile from all remaining raw sources.**
 
 ```
 /rebuild
@@ -67,10 +69,11 @@ Use this after manually deleting one or more raw source files. The `/compile` sk
 
 What it does:
 1. Collects all remaining raw sources (`raw/**/*.md`)
-2. If no sources found, aborts safely — `compiled/` is **not** wiped
-3. Deletes all files in `compiled/`
-4. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
-5. Regenerates `_index.md` and `_backlinks.md`
+2. If no sources found, aborts safely — KB directories are **not** wiped
+3. Deletes all files in KB type directories (`wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
+4. **Preserves `wiki/workspaces/` and `wiki/.obsidian/`** — workspace content is never touched
+5. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
+6. Regenerates `_index.md` and `_backlinks.md` (includes preserved workspace content)
 
 **Removing a source from the wiki:**
 
@@ -82,11 +85,28 @@ rm raw/substacks/outdated-article.md
 /rebuild
 ```
 
-After rebuild, all articles unique to the deleted source are gone, and multi-source articles are rewritten without the deleted source's content.
+After rebuild, all articles unique to the deleted source are gone, and multi-source articles are rewritten without the deleted source's content. Workspace content is untouched.
 
 ::: tip
-`raw/` is append-only during normal operations (`/ingest` and `/compile` never modify existing raw files). Only delete raw files as a deliberate manual action before running `/rebuild`. Since `compiled/` is fully derived from `raw/`, you can undo a rebuild with `git checkout compiled/`.
+`raw/` is append-only during normal operations (`/ingest` and `/compile` never modify existing raw files). Only delete raw files as a deliberate manual action before running `/rebuild`.
 :::
+
+## /index
+
+**Rescan `wiki/` and update `_index.md` and `_backlinks.md`.**
+
+```
+/index
+```
+
+Use this after manually creating or modifying workspace content (notes, drafts, etc.) to update the master index.
+
+What it does:
+1. Scans all `.md` files in `wiki/` (KB articles + workspace content)
+2. Regenerates `_index.md` with all entries grouped by type and workspace
+3. Regenerates `_backlinks.md` with cross-zone references
+
+This is a non-destructive operation — it only reads content and rewrites the two index files.
 
 ## /lint
 
@@ -94,15 +114,15 @@ After rebuild, all articles unique to the deleted source are gone, and multi-sou
 
 ```
 /lint                    # Lint entire wiki
-/lint compiled/concepts/ # Lint specific directory
+/lint wiki/concepts/     # Lint specific directory
 ```
 
 Produces a report at `output/reports/lint-<date>.md` with 7 checks:
 
-1. **Frontmatter validation** — required fields, valid enums, type-specific fields
-2. **Broken wikilinks** — every `[[link]]` must resolve to a real file
+1. **Frontmatter validation** — required fields, valid enums, type-specific fields (KB: full schema, workspaces: light schema)
+2. **Broken wikilinks** — every `[[link]]` must resolve to a real file within `wiki/`
 3. **Orphaned articles** — no inbound links
-4. **Contradictory claims** — conflicting facts across related articles
-5. **Stale content** — past decay rate threshold
+4. **Contradictory claims** — conflicting facts across related KB articles
+5. **Stale content** — past decay rate threshold (KB articles only)
 6. **Missing concepts** — topics mentioned in 3+ articles without their own article
 7. **Duplicate detection** — same entity under different names

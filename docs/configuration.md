@@ -34,6 +34,10 @@ defaults:
   decay_rate: medium                  # fast | medium | slow
   confidence: medium                  # high | medium | speculative
 
+vault:
+  dir: wiki                       # Directory used as Obsidian vault
+  default_workspace: my-notes     # Pre-created workspace for human user
+
 schema_version: 1
 ```
 
@@ -74,3 +78,12 @@ GOOGLE_API_KEY=        # Optional
 ```
 
 `.env` is git-ignored. Never commit API keys.
+
+## Vault
+
+The `vault` section configures the Obsidian-facing directory:
+
+| Field | Default | Description |
+|---|---|---|
+| `dir` | `wiki` | Directory name for the Obsidian vault |
+| `default_workspace` | `my-notes` | Pre-created workspace for human users |
