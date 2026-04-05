@@ -16,7 +16,7 @@ features:
   - title: Domain-Agnostic
     details: One config file customizes everything. Works for AI research, finance, healthcare, marketing, or any knowledge domain.
   - title: LLM-Powered Pipeline
-    details: Three Agent Skills handle the pipeline — ingest sources, compile wiki articles, and lint for quality. You provide sources, the LLM writes the wiki.
+    details: Agent Skills handle the full pipeline — ingest sources, compile wiki articles, rebuild after source removal, and lint for quality. You provide sources, the LLM writes the wiki.
   - title: Obsidian-Native
     details: Browse your wiki in Obsidian with graph view, backlinks, and wikilink navigation. Pre-configured vault with color-coded node types.
   - title: Provider-Agnostic
@@ -40,8 +40,15 @@ features:
          |
          v
   +--------------+
+  |  /rebuild    |  Wipe compiled/, replay all sources (after deletion)
+  +--------------+
+         |
+         v
+  +--------------+
   |   Obsidian   |  Browse, graph view, backlinks
   +--------------+
 ```
+
+> `/rebuild` is only needed after manually deleting raw source files. Normal operation uses `/ingest` and `/compile`.
 
 The LLM writes all wiki content. You provide sources, the LLM maintains `compiled/`. You never edit `compiled/` directly — just read it in Obsidian.

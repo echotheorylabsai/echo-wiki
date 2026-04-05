@@ -1,6 +1,6 @@
 # Skills
 
-Echo Wiki uses three [Agent Skills](https://agentskills.io) to manage the wiki pipeline. Skills are stored in `.skills/` and work with any compatible agent.
+Echo Wiki uses [Agent Skills](https://agentskills.io) to manage the wiki pipeline. Skills are stored in `.skills/` and work with any compatible agent.
 
 ## /ingest
 
@@ -54,6 +54,39 @@ What it does:
 | People | `compiled/people/` | Researchers, authors, key figures |
 | Tools | `compiled/tools/` | Software, platforms, frameworks |
 | Sources | `compiled/sources/` | Summary of each raw source |
+
+## /rebuild
+
+**Wipe `compiled/` and recompile from all remaining raw sources.**
+
+```
+/rebuild
+```
+
+Use this after manually deleting one or more raw source files. The `/compile` skill only appends and merges — it cannot remove content from deleted sources. `/rebuild` starts fresh and recompiles only from sources that still exist.
+
+What it does:
+1. Collects all remaining raw sources (`raw/**/*.md`)
+2. If no sources found, aborts safely — `compiled/` is **not** wiped
+3. Deletes all files in `compiled/`
+4. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
+5. Regenerates `_index.md` and `_backlinks.md`
+
+**Removing a source from the wiki:**
+
+```bash
+# 1. Delete the raw source file
+rm raw/substacks/outdated-article.md
+
+# 2. Rebuild to reconcile
+/rebuild
+```
+
+After rebuild, all articles unique to the deleted source are gone, and multi-source articles are rewritten without the deleted source's content.
+
+::: tip
+`raw/` is append-only during normal operations (`/ingest` and `/compile` never modify existing raw files). Only delete raw files as a deliberate manual action before running `/rebuild`. Since `compiled/` is fully derived from `raw/`, you can undo a rebuild with `git checkout compiled/`.
+:::
 
 ## /lint
 

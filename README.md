@@ -21,6 +21,11 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
          |
          v
   +--------------+
+  |  /rebuild    |  Wipe compiled/, replay all sources (after deletion)
+  +--------------+
+         |
+         v
+  +--------------+
   |   Obsidian   |  Browse, graph view, backlinks
   +--------------+
 ```
@@ -93,6 +98,7 @@ See `.env.example` for required API keys.
 | `/ingest <path>` | Import local file (md, pdf) to `raw/` |
 | `/compile <path>` | Compile raw source into wiki articles |
 | `/compile all` | Recompile entire wiki |
+| `/rebuild` | Wipe `compiled/`, recompile from all remaining raw sources |
 | `/lint` | Run semantic checks, produce report |
 | `/lint all` | Lint entire wiki |
 
@@ -120,7 +126,11 @@ See `.env.example` for required API keys.
     Update _index.md + _backlinks.md           |
          |                                     |
          v                                     |
-    compiled/ <-- ready for Obsidian
+    compiled/ <-- ready for Obsidian           |
+                                               |
+                    /rebuild                    |
+                       |                       |
+    [delete raw] --> wipe compiled/ --> replay all sources chronologically
 ```
 
 ## Validation
@@ -156,7 +166,8 @@ echo-wiki/
 ├── compiled/                  # LLM-maintained wiki (read-only for humans)
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
-├── .skills/                   # Agent Skills (ingest, compile, lint)
+├── .skills/                   # Agent Skills (ingest, compile, rebuild, lint)
+├── docs/                      # VitePress documentation site
 ├── .obsidian/                 # Vault config (graph colors, wikilinks)
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions

@@ -77,7 +77,7 @@ my-wiki/
 ├── compiled/                  # LLM-maintained wiki (read-only for humans)
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
-├── .skills/                   # Agent Skills (ingest, compile, lint)
+├── .skills/                   # Agent Skills (ingest, compile, rebuild, lint)
 ├── .obsidian/                 # Vault config (graph colors, wikilinks)
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
@@ -87,5 +87,5 @@ my-wiki/
 ## What's Next?
 
 - [Configure your domains](/configuration) for your specific use case
-- [Learn about the skills](/skills) — ingest, compile, and lint
+- [Learn about the skills](/skills) — ingest, compile, rebuild, and lint
 - [Set up validation](/validation) — pre-commit hooks and semantic linting
