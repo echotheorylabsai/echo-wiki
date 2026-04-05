@@ -36,4 +36,8 @@ defaults:
   decay_rate: medium
   confidence: medium
 
+vault:
+  dir: wiki
+  default_workspace: my-notes
+
 schema_version: 1

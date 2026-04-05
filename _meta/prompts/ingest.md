@@ -8,7 +8,7 @@ Fetch content from URLs or local files and save as clean markdown in `raw/`.
 
 ## Steps
 1. Read `_meta/wiki.config.yaml` for allowed source types and ingestion settings
-2. Check `compiled/_index.md` for existing source-summaries (avoid duplicates)
+2. Check `wiki/_index.md` for existing source-summaries (avoid duplicates)
 3. Detect source type from URL pattern:
    - `*.substack.com/*` → substack
    - `github.com/*` → github

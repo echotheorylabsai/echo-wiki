@@ -18,7 +18,7 @@ features:
   - title: LLM-Powered Pipeline
     details: Agent Skills handle the full pipeline — ingest sources, compile wiki articles, rebuild after source removal, and lint for quality. You provide sources, the LLM writes the wiki.
   - title: Obsidian-Native
-    details: Browse your wiki in Obsidian with graph view, backlinks, and wikilink navigation. Pre-configured vault with color-coded node types.
+    details: Browse your wiki in Obsidian with graph view, backlinks, and wikilink navigation. Clean vault showing only your knowledge base and workspaces — no backend clutter.
   - title: Provider-Agnostic
     details: Built on the Agent Skills open standard. Works with Claude Code, Codex CLI, Gemini CLI, or any compatible agent.
 ---
@@ -35,12 +35,12 @@ features:
          |
          v
   +--------------+
-  |   /compile   |  Extract entities, build articles → compiled/
+  |   /compile   |  Extract entities, build articles → wiki/
   +--------------+
          |
          v
   +--------------+
-  |  /rebuild    |  Wipe compiled/, replay all sources (after deletion)
+  |  /rebuild    |  Wipe KB dirs, replay all sources (after deletion)
   +--------------+
          |
          v
@@ -51,4 +51,4 @@ features:
 
 > `/rebuild` is only needed after manually deleting raw source files. Normal operation uses `/ingest` and `/compile`.
 
-The LLM writes all wiki content. You provide sources, the LLM maintains `compiled/`. You never edit `compiled/` directly — just read it in Obsidian.
+The LLM writes all wiki content. You provide sources, the LLM maintains `wiki/`. You never edit KB articles directly — just read them in Obsidian. Create your own notes in `wiki/workspaces/`.

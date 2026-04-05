@@ -2,14 +2,17 @@
 .env
 
 # Obsidian workspace (user-specific UI state)
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/core-plugins.json
-.obsidian/community-plugins.json
-.obsidian/hotkeys.json
-.obsidian/plugins/
+wiki/.obsidian/workspace.json
+wiki/.obsidian/workspace-mobile.json
+wiki/.obsidian/core-plugins.json
+wiki/.obsidian/community-plugins.json
+wiki/.obsidian/hotkeys.json
+wiki/.obsidian/plugins/
 *.canvas
 *.base
+
+# Superpowers specs and plans (local dev artifacts)
+docs/superpowers/
 
 # Node modules (VitePress)
 node_modules/

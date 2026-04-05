@@ -2,9 +2,10 @@
 # Version: 1 (matches wiki.config.yaml schema_version)
 #
 # Defines required and optional frontmatter fields for all markdown files.
-# Referenced by: .skills/compile/SKILL.md, .skills/lint/SKILL.md, hooks/pre-commit.sh
+# Referenced by: .claude/skills/compile/SKILL.md, .claude/skills/lint/SKILL.md, hooks/pre-commit.sh
+# wiki/ articles use kb_shared; workspace files under wiki/workspaces/ use workspace schema
 
-compiled_shared:
+kb_shared:
   required_fields:
     title: string
     type:
@@ -17,11 +18,11 @@ compiled_shared:
     confidence:
       enum: [high, medium, speculative]
     tags: list[string]  # Values from wiki.config.yaml domains
-    sources: list[wikilink]  # At least one entry required
+    sources: list[string]  # Raw file paths (plain strings, not wikilinks)
     related: list[wikilink]
     summary: string  # One-line for index files
 
-compiled_type_specific:
+kb_type_specific:
   concept:
     domain: list[string]
     prerequisites: list[wikilink]
@@ -53,6 +54,17 @@ raw:
     ingestion_tool:
       enum: [tavily, firecrawl, local]
     tags: list[string]
+
+workspace:
+  required_fields:
+    title: string
+    created: date  # YYYY-MM-DD
+  optional_fields:
+    author: string  # actor name (human name or agent identifier)
+    tags: list[string]
+    summary: string
+    related: list[wikilink]
+    sources: list[string]
 
 enums:
   type: [concept, person, tool, source-summary]

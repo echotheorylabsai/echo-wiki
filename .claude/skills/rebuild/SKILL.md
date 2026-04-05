@@ -1,0 +1,132 @@
+---
+name: rebuild
+description: Wipe wiki/ KB type directories and recompile the entire wiki from all remaining raw sources
+---
+
+# Rebuild
+
+Wipe `wiki/` KB type directories and replay all raw sources in chronological order. Use this after manually deleting raw source files to reconcile the wiki — removes all traces of deleted sources from compiled output.
+
+## Prerequisites
+
+Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompts/structure-check.md`. If any required paths are missing, recreate them before proceeding.
+
+## Input
+
+- No arguments. Always rebuilds the entire wiki from all current raw sources.
+- Example: `/rebuild`
+
+## When to Use
+
+After manually deleting one or more raw source files from `raw/`. The `/compile` skill only appends and merges — it cannot remove content from deleted sources. `/rebuild` starts fresh and recompiles only from sources that still exist.
+
+## Context Loading
+
+| Level | Load | When |
+|---|---|---|
+| L0 | `wiki/_index.md` | After creating empty scaffold (Step 5) |
+| L1 | `wiki/_backlinks.md` | During Step 7 |
+| L2 | Specific `wiki/<type>/<article>.md` | During merge checks in Step 6 |
+| L3 | Specific `raw/<category>/<source>.md` | Reading each source in Step 6 |
+
+## Steps
+
+### Step 1: Load Configuration
+
+Read both files:
+- `_meta/wiki.config.yaml` — domain context, defaults
+- `_meta/schemas/frontmatter.yaml` — required fields and enums
+
+### Step 2: Collect Raw Sources
+
+Glob `raw/**/*.md` to find all existing source files. Exclude any non-markdown files and `.gitkeep` files.
+
+### Step 3: Abort If No Sources
+
+If no raw source files were found in Step 2:
+- Print: **"No raw sources found. Nothing to rebuild."**
+- **Do NOT delete or modify anything in `wiki/`.**
+- Stop here.
+
+### Step 4: Wipe KB Type Directories
+
+Delete all `.md` files recursively inside these 4 directories only:
+- `wiki/concepts/`
+- `wiki/people/`
+- `wiki/tools/`
+- `wiki/sources/`
+
+**NEVER delete or modify:**
+- `wiki/workspaces/` (actor workspace content)
+- `wiki/.obsidian/` (Obsidian vault config)
+- `wiki/_index.md` (will be regenerated in Step 7)
+- `wiki/_backlinks.md` (will be regenerated in Step 7)
+
+Preserve the directory structure (empty folders are fine). Do NOT touch `raw/` or any other directory.
+
+### Step 5: Create Empty Index Scaffold
+
+Create a fresh `wiki/_index.md` with empty sections:
+
+```markdown
+# Wiki Index
+
+## Concepts
+
+## People
+
+## Tools
+
+## Sources
+
+## Workspaces
+```
+
+### Step 6: Replay Each Source
+
+Sort the collected raw sources by their `ingested` frontmatter field (ascending — oldest first). If `ingested` dates are missing or identical, fall back to alphabetical file path ordering.
+
+For each raw source, in sorted order:
+1. Read the raw source file
+2. Execute the compile workflow from `.claude/skills/compile/SKILL.md` — specifically the steps named: **Read and Analyze Raw Source**, **Create Source Summary**, **Extract and Classify Entities**, **Create or Merge Articles**, **Add Wikilinks** (all steps before "Update Index and Backlinks")
+3. If a source has invalid or missing frontmatter, skip it and log a warning
+4. If compile logic fails for a source, log the error and continue with remaining sources
+
+**Important:** Each source builds on the output of previous sources. Articles created by earlier sources will be merged into by later sources — this mirrors how the wiki would have been built incrementally.
+
+### Step 7: Regenerate Index and Backlinks
+
+After all sources have been processed, run the compile step named **Update Index and Backlinks**:
+- Regenerate `wiki/_index.md` with all articles, sorted alphabetically within each section
+- Regenerate `wiki/_backlinks.md` with complete cross-reference map
+
+**Important:** When regenerating `_index.md` and `_backlinks.md`, scan ALL of `wiki/` including preserved `wiki/workspaces/` content. Workspace entries must appear in both files after rebuild.
+
+### Step 8: Report Results
+
+Print a summary:
+
+```
+Rebuild complete. X sources processed, Y articles created.
+```
+
+If any sources were skipped due to errors, include:
+
+```
+Rebuild complete. X sources processed, Y articles created. Z sources skipped (see warnings above).
+```
+
+## Error Handling
+
+| Scenario | Behavior |
+|---|---|
+| No raw sources exist | Abort with message. Do NOT wipe `wiki/`. |
+| A raw source has invalid/missing frontmatter | Skip it, log a warning, continue with remaining sources. |
+| Compile logic fails for a source | Log the error, continue with remaining sources. Report partial rebuild. |
+
+## Important Rules
+
+- **NEVER touch `raw/` files** — rebuild only reads raw sources, never modifies or deletes them.
+- **Only the user deletes raw files** — this is always a deliberate manual action before running `/rebuild`.
+- **Reuse compile logic exactly** — do not implement alternative article creation or merging logic.
+- **Process sources chronologically** — sorting by `ingested` date ensures consistent, reproducible output.

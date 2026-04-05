@@ -16,12 +16,12 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
          |
          v
   +--------------+
-  |   /compile   |  Extract entities, build articles -> compiled/
+  |   /compile   |  Extract entities, build articles -> wiki/
   +--------------+
          |
          v
   +--------------+
-  |  /rebuild    |  Wipe compiled/, replay all sources (after deletion)
+  |  /rebuild    |  Wipe KB dirs, replay all sources (after deletion)
   +--------------+
          |
          v
@@ -30,10 +30,12 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
   +--------------+
 ```
 
-**The LLM writes all wiki content.** You provide sources, the LLM maintains `compiled/`. You never edit `compiled/` directly — just read it in Obsidian.
+> `/rebuild` is only needed after manually deleting raw source files. Normal workflow is `/ingest` → `/compile`.
+
+**The LLM writes all wiki content.** You provide sources, the LLM maintains `wiki/`. You never edit KB articles directly — just read them in Obsidian. You can create your own notes and drafts in `wiki/workspaces/`.
 
 ```
-raw/                          compiled/
+raw/                          wiki/ (Obsidian vault)
 ├── blogs/                    ├── _index.md        <- Master index
 │   └── source-article.md    ├── _backlinks.md    <- Cross-reference map
 ├── papers/                   ├── concepts/        <- Ideas & theories
@@ -42,8 +44,10 @@ raw/                          compiled/
 ├── github/                   │   └── person.md
 └── media/                    ├── tools/           <- Software & platforms
                               │   └── tool.md
-                              └── sources/         <- Source summaries
-                                  └── summary.md
+                              ├── sources/         <- Source summaries
+                              │   └── summary.md
+                              └── workspaces/      <- Actor workspaces
+                                  └── my-notes/    <- Your notes
 ```
 
 ## Quick Start
@@ -64,7 +68,7 @@ ln -sf ../../hooks/pre-commit.sh .git/hooks/pre-commit
 ln -sf ../../hooks/token-count.sh .git/hooks/post-commit
 
 # 5. Open in Obsidian
-# File > Open folder as vault > select this directory
+# File > Open folder as vault > select the wiki/ directory
 
 # 6. Ingest your first source
 /ingest https://example.com/article
@@ -83,6 +87,10 @@ domains:
   - name: "topic"
     label: "Topic Label"
 
+vault:
+  dir: wiki
+  default_workspace: my-notes
+
 defaults:
   decay_rate: medium    # fast | medium | slow
   confidence: medium    # high | medium | speculative
@@ -98,9 +106,31 @@ See `.env.example` for required API keys.
 | `/ingest <path>` | Import local file (md, pdf) to `raw/` |
 | `/compile <path>` | Compile raw source into wiki articles |
 | `/compile all` | Recompile entire wiki |
-| `/rebuild` | Wipe `compiled/`, recompile from all remaining raw sources |
+| `/rebuild` | Wipe KB dirs, recompile from all remaining raw sources |
+| `/index` | Rescan `wiki/` and update `_index.md` and `_backlinks.md` |
 | `/lint` | Run semantic checks, produce report |
 | `/lint all` | Lint entire wiki |
+
+## Workspaces
+
+Users and agents can create content alongside KB articles in `wiki/workspaces/`:
+
+```
+wiki/workspaces/
+├── my-notes/              <- Default human workspace (ships with template)
+│   ├── research-log.md
+│   └── todo.md
+├── content-creator/       <- Agent workspace (created on demand)
+│   └── drafts/
+└── social-media/          <- Agent workspace
+    └── drafts/
+```
+
+- **Zero registration** — just create a directory under `workspaces/`
+- **Agents and humans are peers** — same structure, same rules
+- **Cross-zone wikilinks** — workspace notes can link to KB articles and vice versa
+- **Rebuild-safe** — `/rebuild` never touches `workspaces/`
+- Run `/index` after creating workspace content to update the master index
 
 ## Data Flow
 
@@ -126,20 +156,20 @@ See `.env.example` for required API keys.
     Update _index.md + _backlinks.md           |
          |                                     |
          v                                     |
-    compiled/ <-- ready for Obsidian           |
+    wiki/ <-- ready for Obsidian               |
                                                |
                     /rebuild                    |
                        |                       |
-    [delete raw] --> wipe compiled/ --> replay all sources chronologically
+    [delete raw] --> wipe KB dirs --> replay all sources chronologically
+                     (workspaces preserved)
 ```
 
 ## Validation
 
 **Pre-commit hook (automatic):**
-- Frontmatter exists and has required fields
-- `type` is a valid enum
-- All `[[wikilinks]]` resolve to real files
-- Every compiled article has `sources:`
+- Structure integrity — protected paths must exist
+- KB articles: frontmatter, required fields, type enum, wikilinks, sources
+- Workspace files: frontmatter, title, created
 
 **Semantic lint (`/lint`, on-demand):**
 - Contradictory claims across articles
@@ -162,13 +192,20 @@ echo-wiki/
 │   ├── wiki.config.yaml      # Your wiki configuration
 │   ├── prompts/               # Reference docs for each operation
 │   └── schemas/               # Frontmatter validation schema
-├── raw/                       # Source documents (append-only)
-├── compiled/                  # LLM-maintained wiki (read-only for humans)
+├── raw/                       # Source documents (append-only, backend)
+├── wiki/                      # Obsidian vault (user-facing)
+│   ├── concepts/              # KB: ideas, theories, patterns
+│   ├── people/                # KB: key figures
+│   ├── tools/                 # KB: software, platforms
+│   ├── sources/               # KB: source summaries
+│   ├── workspaces/            # Actor workspaces (human + agent)
+│   │   └── my-notes/          # Default human workspace
+│   ├── _index.md              # Master index
+│   └── _backlinks.md          # Cross-reference map
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
-├── .skills/                   # Agent Skills (ingest, compile, rebuild, lint)
+├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)
 ├── docs/                      # VitePress documentation site
-├── .obsidian/                 # Vault config (graph colors, wikilinks)
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
 └── README.md
@@ -178,9 +215,9 @@ echo-wiki/
 
 Echo Wiki uses the [Agent Skills](https://agentskills.io) open standard. Works with:
 
-- **Claude Code** — via CLAUDE.md + .skills/
-- **Codex CLI** — via AGENTS.md + .skills/
-- **Gemini CLI** — via GEMINI.md + .skills/
+- **Claude Code** — via CLAUDE.md + .claude/skills/
+- **Codex CLI** — via AGENTS.md + .claude/skills/
+- **Gemini CLI** — via GEMINI.md + .claude/skills/
 - **Any Agent Skills-compatible agent**
 
 ## License

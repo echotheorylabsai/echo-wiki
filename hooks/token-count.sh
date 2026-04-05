@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Echo Wiki — Token Count Estimator
-# Counts words across raw/ and compiled/, estimates tokens (words x 1.3).
+# Counts words across raw/ and wiki/, estimates tokens (words x 1.3).
 # Usage: ./hooks/token-count.sh
 # Also usable as post-commit hook (informational, never blocks).
 set -euo pipefail
@@ -13,11 +13,11 @@ count_words() {
 }
 
 RAW_WORDS=$(count_words "$WIKI_ROOT/raw")
-COMPILED_WORDS=$(count_words "$WIKI_ROOT/compiled")
-TOTAL_WORDS=$((RAW_WORDS + COMPILED_WORDS))
+WIKI_WORDS=$(count_words "$WIKI_ROOT/wiki")
+TOTAL_WORDS=$((RAW_WORDS + WIKI_WORDS))
 
 RAW_TOKENS=$((RAW_WORDS * 13 / 10))
-COMPILED_TOKENS=$((COMPILED_WORDS * 13 / 10))
+WIKI_TOKENS=$((WIKI_WORDS * 13 / 10))
 TOTAL_TOKENS=$((TOTAL_WORDS * 13 / 10))
 
 # Calculate percentage of 1M context window
@@ -30,7 +30,7 @@ fi
 
 OUTPUT="[$DATE] Wiki Token Estimate
   raw/        $RAW_WORDS words  ~  $RAW_TOKENS tokens
-  compiled/   $COMPILED_WORDS words  ~  $COMPILED_TOKENS tokens
+  wiki/       $WIKI_WORDS words  ~  $WIKI_TOKENS tokens
   TOTAL       $TOTAL_WORDS words  ~  $TOTAL_TOKENS tokens
 
   Context usage: ~${PCT}% of 1M window"
