@@ -46,10 +46,7 @@ If no raw source files were found in Step 2:
 
 ### Step 4: Wipe Compiled Directory
 
-Delete all files inside `compiled/`:
-- All articles in `compiled/concepts/`, `compiled/people/`, `compiled/tools/`, `compiled/sources/`
-- `compiled/_index.md`
-- `compiled/_backlinks.md`
+Delete all `.md` files recursively inside `compiled/` — this includes all articles, `_index.md`, and `_backlinks.md`.
 
 Preserve the directory structure (empty folders are fine). Do NOT touch `raw/` or any other directory.
 
