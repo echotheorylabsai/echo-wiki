@@ -11,7 +11,7 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 ## Rules
 
-1. **`compiled/` is LLM-only.** Write via `/compile` skill only. Never edit directly.
+1. **`compiled/` is LLM-only.** Write via `/compile` or `/rebuild` only. Never edit directly.
 2. **`raw/` is append-only during normal operation.** Do not modify or delete sources as part of `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`.
 3. **Frontmatter required** on all files. Schema: `_meta/schemas/frontmatter.yaml`
 4. **Wikilinks** for all cross-references: `[[concepts/name|Display Name]]`

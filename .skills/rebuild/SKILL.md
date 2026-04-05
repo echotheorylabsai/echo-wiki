@@ -72,7 +72,7 @@ Sort the collected raw sources by their `ingested` frontmatter field (ascending 
 
 For each raw source, in sorted order:
 1. Read the raw source file
-2. Execute the compile workflow from `.skills/compile/SKILL.md` — specifically Steps 1 through 5 (Read and Analyze, Create Source Summary, Extract and Classify Entities, Create or Merge Articles, Add Wikilinks)
+2. Execute the compile workflow from `.skills/compile/SKILL.md` — specifically the steps named: **Read and Analyze Raw Source**, **Create Source Summary**, **Extract and Classify Entities**, **Create or Merge Articles**, **Add Wikilinks** (all steps before "Update Index and Backlinks")
 3. If a source has invalid or missing frontmatter, skip it and log a warning
 4. If compile logic fails for a source, log the error and continue with remaining sources
 
@@ -80,7 +80,7 @@ For each raw source, in sorted order:
 
 ### Step 7: Regenerate Index and Backlinks
 
-After all sources have been processed, run compile Step 6 (Update Index and Backlinks):
+After all sources have been processed, run the compile step named **Update Index and Backlinks**:
 - Regenerate `compiled/_index.md` with all articles, sorted alphabetically within each section
 - Regenerate `compiled/_backlinks.md` with complete cross-reference map
 
