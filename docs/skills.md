@@ -85,7 +85,7 @@ rm raw/substacks/outdated-article.md
 After rebuild, all articles unique to the deleted source are gone, and multi-source articles are rewritten without the deleted source's content.
 
 ::: tip
-`raw/` is append-only during normal operations (`/ingest` and `/compile` never modify existing raw files). Only delete raw files as a deliberate manual action before running `/rebuild`.
+`raw/` is append-only during normal operations (`/ingest` and `/compile` never modify existing raw files). Only delete raw files as a deliberate manual action before running `/rebuild`. Since `compiled/` is fully derived from `raw/`, you can undo a rebuild with `git checkout compiled/`.
 :::
 
 ## /lint

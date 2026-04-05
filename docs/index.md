@@ -49,4 +49,6 @@ features:
   +--------------+
 ```
 
+> `/rebuild` is only needed after manually deleting raw source files. Normal operation uses `/ingest` and `/compile`.
+
 The LLM writes all wiki content. You provide sources, the LLM maintains `compiled/`. You never edit `compiled/` directly — just read it in Obsidian.

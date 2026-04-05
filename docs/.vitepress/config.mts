@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'Echo Wiki',
   description: 'A generic, LLM-maintained knowledge base system',
   base: '/echo-wiki/',
+  srcExclude: ['superpowers/**'],
 
   themeConfig: {
     nav: [
