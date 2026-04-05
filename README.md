@@ -167,7 +167,6 @@ echo-wiki/
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
 ├── .skills/                   # Agent Skills (ingest, compile, rebuild, lint)
-├── docs/                      # VitePress documentation site
 ├── .obsidian/                 # Vault config (graph colors, wikilinks)
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
