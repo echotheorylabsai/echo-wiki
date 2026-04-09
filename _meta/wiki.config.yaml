@@ -16,6 +16,24 @@ domains:
   # - name: "finance"
   #   label: "Finance & Markets"
 
+entity_types:
+  - name: concept
+    dir: concepts
+    label: Concepts
+    description: "Ideas, theories, patterns, methodologies, principles"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, founders, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks, products, services"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
+
 source_types:
   - blog
   - paper
