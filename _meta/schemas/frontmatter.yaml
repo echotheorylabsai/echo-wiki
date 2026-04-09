@@ -9,7 +9,7 @@ kb_shared:
   required_fields:
     title: string
     type:
-      enum: [concept, person, tool, source-summary]
+      enum: "wiki.config.yaml#entity_types[].name"  # Read valid types from config
     created: date  # YYYY-MM-DD
     last_updated: date
     last_verified: date
@@ -41,6 +41,10 @@ kb_type_specific:
       enum: [blog, paper, tweet, substack, github, podcast, video]
     author: string
     source_date: date
+  # Custom entity types (added via wiki.config.yaml entity_types):
+  # Type-specific fields are optional. The LLM infers appropriate fields
+  # from the entity type's `description` during /compile.
+  # Add entries here for stricter /lint validation of custom types.
 
 raw:
   required_fields:
@@ -67,7 +71,7 @@ workspace:
     sources: list[string]
 
 enums:
-  type: [concept, person, tool, source-summary]
+  type: "wiki.config.yaml#entity_types[].name"  # Config-driven
   decay_rate: [fast, medium, slow]
   confidence: [high, medium, speculative]
   source_type: [blog, paper, tweet, substack, github, podcast, video]
