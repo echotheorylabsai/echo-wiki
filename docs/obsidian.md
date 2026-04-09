@@ -29,6 +29,8 @@ The graph view is color-coded by content type:
 | Sources | Gray | `path:sources` |
 | Workspaces | Purple | `path:workspaces` |
 
+If you've configured custom entity types, add graph color groups for your custom directories. In Obsidian: Settings → Graph view → Groups → Add group with `path:<your-dir>`.
+
 Open graph view: Ctrl/Cmd + G
 
 ## Workspaces
