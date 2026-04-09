@@ -19,23 +19,22 @@ Before validating any files, the hook checks that all protected wiki paths exist
 |---|---|
 | `wiki/_index.md` | Master index |
 | `wiki/_backlinks.md` | Cross-reference map |
-| `wiki/concepts/` | KB type directory |
-| `wiki/people/` | KB type directory |
-| `wiki/tools/` | KB type directory |
-| `wiki/sources/` | KB type directory |
+| `wiki/<entity_types[].dir>/` | KB type directories (from config) |
 | `wiki/workspaces/` | Actor workspace root |
+
+KB type directories are read from `entity_types` in `_meta/wiki.config.yaml`. Default: `concepts/`, `people/`, `tools/`, `sources/`.
 
 If any path is missing, the commit is blocked with a clear message. Restore the path or run a skill (which auto-heals missing structure).
 
 ### KB Article Validation (Full Schema)
 
-Files in `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`:
+Files in KB type directories (from `entity_types` config):
 
 | Check | Method | Blocks commit? |
 |---|---|---|
 | Frontmatter exists | Regex for `---` header | Yes |
 | Required fields present | `title`, `type`, `created`, `summary`, `sources` | Yes |
-| `type` is valid enum | `concept \| person \| tool \| source-summary` | Yes |
+| `type` is valid enum | Must match `entity_types[].name` from config | Yes |
 | All `[[wikilinks]]` resolve | Target file must exist in `wiki/` | Yes |
 | `sources:` is non-empty | At least one entry | Yes |
 
