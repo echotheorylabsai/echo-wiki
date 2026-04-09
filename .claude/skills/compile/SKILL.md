@@ -1,6 +1,6 @@
 ---
 name: compile
-description: Compile raw sources into structured wiki articles with cross-references
+description: Compile raw sources into structured wiki articles with cross-references. Reads entity types from wiki.config.yaml.
 ---
 
 # Compile
@@ -30,9 +30,9 @@ Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompt
 
 Read the raw source file(s). For each source, identify:
 - **Main topic/thesis** — what is this source about?
-- **Concepts** — ideas, theories, patterns, methodologies, principles
-- **People** — researchers, authors, founders, key figures mentioned
-- **Tools** — software, platforms, frameworks, products, services
+- For each entity type defined in `entity_types` config (except `source-summary`), identify matching entities using the type's `description` field as guidance
+- Default types: concepts (ideas, theories, patterns), people (researchers, authors, key figures), tools (software, platforms, frameworks)
+- Custom wikis may define different entity types — always read from `_meta/wiki.config.yaml`
 - **Key claims** — factual assertions, data points, quotes
 - **Relationships** — how entities relate to each other
 
@@ -74,13 +74,25 @@ summary: "<One-line summary of the source>"
 
 ### Step 3: Extract and Classify Entities
 
-From the source content, build a list of entities:
+From the source content, build a list of entities.
+
+Read `entity_types` from `_meta/wiki.config.yaml`. For each type (except `source-summary`), use its `description` to guide extraction:
+
+| Config field | How it's used |
+|---|---|
+| `entity_types[].name` | Value for the `type:` frontmatter field |
+| `entity_types[].dir` | Target directory under `wiki/` |
+| `entity_types[].description` | Guides what to look for in the source content |
+
+**Default types:**
 
 | Entity Type | What to look for | Compiled type |
 |---|---|---|
 | Concepts | Ideas, theories, patterns, methodologies, architectural patterns, principles | `concept` |
 | People | Researchers, authors, founders, key figures, speakers | `person` |
 | Tools | Software, platforms, frameworks, products, services, APIs, libraries | `tool` |
+
+Custom wikis may have entirely different entity types. Always read from config.
 
 For each entity, determine:
 1. Does an article already exist? (Check `_index.md` for exact AND semantic matches — "MCP" = "Model Context Protocol")
@@ -91,7 +103,11 @@ For each entity, determine:
 
 ### Step 4: Create or Merge Articles
 
-**If article does NOT exist** — create new:
+**If article does NOT exist** — create new.
+
+Read entity types from config. The `dir` field determines where the file goes: `wiki/<dir>/<name>.md`. The `name` field becomes the `type:` value in frontmatter.
+
+For **built-in types**, use the templates below. For **custom entity types** (not concept/person/tool/source-summary), create articles with all `kb_shared` required fields and let the LLM infer appropriate type-specific fields from the entity type's `description` in config.
 
 For **concepts** (`wiki/concepts/<name>.md`):
 ```yaml
@@ -187,23 +203,20 @@ Rules:
 
 ### Step 6: Update Index and Backlinks
 
-**Regenerate `wiki/_index.md`** completely:
+**Regenerate `wiki/_index.md`** completely.
+
+Read `entity_types` from config. Create one section per type using its `label` as the heading and `dir` for the wikilink paths:
 
 ```markdown
 # Wiki Index
 
-## Concepts
-- [[concepts/<name>|<Title>]] — <summary from frontmatter>
+## <entity_types[].label>
+- [[<dir>/<name>|<Title>]] — <summary from frontmatter>
 
-## People
-- [[people/<name>|<Title>]] — <summary from frontmatter>
-
-## Tools
-- [[tools/<name>|<Title>]] — <summary from frontmatter>
-
-## Sources
-- [[sources/<name>|<Title>]] — <summary from frontmatter>
+... (one section per configured entity type)
 ```
+
+For the default config, sections are: `## Concepts`, `## People`, `## Tools`, `## Sources`.
 
 - Sort entries alphabetically within each section
 - One line per article: wikilink + summary
@@ -226,6 +239,18 @@ Linked from:
 - Sort sections alphabetically
 
 **Important:** Backlinks must include cross-zone references. If a workspace file links to a KB article, that link appears in the KB article's backlinks entry.
+
+### Step 7: Append to Activity Log
+
+Append an entry to `wiki/_log.md`. If the file doesn't exist, create it with a `# Activity Log` header first.
+
+Format:
+```markdown
+## [YYYY-MM-DD] compile | <raw source path>
+Articles created: <list of new article paths, comma-separated>
+Articles updated: <list of merged article paths, or "—" if none>
+Source summary: <source summary path>
+```
 
 ## Filename Convention
 
