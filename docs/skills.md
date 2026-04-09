@@ -48,7 +48,7 @@ What it does:
 5. Adds `[[wikilinks]]` between related articles
 6. Regenerates `_index.md` and `_backlinks.md` (includes workspace content)
 
-**Four KB categories:**
+**KB entity types** (configurable in `_meta/wiki.config.yaml`):
 
 | Type | Directory | Examples |
 |---|---|---|
@@ -56,6 +56,8 @@ What it does:
 | People | `wiki/people/` | Researchers, authors, key figures |
 | Tools | `wiki/tools/` | Software, platforms, frameworks |
 | Sources | `wiki/sources/` | Summary of each raw source |
+
+These are the defaults. Custom wikis can define different entity types — see [Configuration](/configuration#entity-types).
 
 ## /rebuild
 
@@ -70,7 +72,7 @@ Use this after manually deleting one or more raw source files. The `/compile` sk
 What it does:
 1. Collects all remaining raw sources (`raw/**/*.md`)
 2. If no sources found, aborts safely — KB directories are **not** wiped
-3. Deletes all files in KB type directories (`wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
+3. Deletes all files in KB type directories (configured via `entity_types` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
 4. **Preserves `wiki/workspaces/` and `wiki/.obsidian/`** — workspace content is never touched
 5. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
 6. Regenerates `_index.md` and `_backlinks.md` (includes preserved workspace content)
