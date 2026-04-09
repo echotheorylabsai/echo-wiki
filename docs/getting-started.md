@@ -24,7 +24,7 @@ cp .env.example .env
 
 ### 3. Configure your domain
 
-Edit `_meta/wiki.config.yaml` — set your wiki name, description, and knowledge domains:
+Edit `_meta/wiki.config.yaml` — set your wiki name, domains, and entity types:
 
 ```yaml
 wiki:
@@ -36,10 +36,27 @@ domains:
     label: "First Topic"
   - name: "topic-2"
     label: "Second Topic"
-    decay_rate_override: fast  # optional
+
+entity_types:                    # What kinds of articles to create
+  - name: concept
+    dir: concepts
+    label: Concepts
+    description: "Ideas, theories, patterns, methodologies"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
 ```
 
-See [Configuration](/configuration) for full reference.
+The defaults above work for most use cases. For domain-specific wikis (finance, health, etc.), customize `entity_types` — see [Configuration](/configuration).
 
 ### 4. Install hooks
 
@@ -54,7 +71,7 @@ Open Obsidian → File → Open folder as vault → select the **`wiki/`** direc
 
 The vault comes pre-configured with:
 - Wikilinks enabled
-- Graph view color groups (concepts=blue, people=green, tools=orange, sources=gray, workspaces=purple)
+- Graph view color groups for default entity types (concepts=blue, people=green, tools=orange, sources=gray, workspaces=purple)
 - Frontmatter display
 - A default `workspaces/my-notes/` directory for your personal notes
 
@@ -76,8 +93,8 @@ my-wiki/
 │   └── schemas/               # Frontmatter validation schema
 ├── raw/                       # Source documents (append-only, backend)
 ├── wiki/                      # Obsidian vault (user-facing)
-│   ├── concepts/              # KB: compiled articles
-│   ├── people/
+│   ├── concepts/              # KB: default entity type directories
+│   ├── people/                #     (configurable via entity_types)
 │   ├── tools/
 │   ├── sources/
 │   ├── workspaces/            # Your notes + agent workspaces
