@@ -12,7 +12,7 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 ## Rules
 
-1. **KB type directories are LLM-only.** Write to `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/` via `/compile` or `/rebuild` only. Never edit directly.
+1. **KB type directories are LLM-only.** Write to KB directories (defined by `entity_types` in `_meta/wiki.config.yaml` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) via `/compile` or `/rebuild` only. Never edit directly.
 2. **`raw/` is append-only during normal operation.** Do not modify or delete sources as part of `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`.
 3. **Workspaces are actor-managed.** `wiki/workspaces/<name>/` directories are owned by their creator (human or agent). Skills never modify workspace content.
 4. **Frontmatter required** on all files. Schema: `_meta/schemas/frontmatter.yaml`. KB articles use full schema; workspace files use light schema.

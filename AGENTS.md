@@ -13,7 +13,7 @@ Skill definitions in `.claude/skills/`:
 
 ## Key Rules
 
-- KB type directories (`wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) are LLM-maintained only — never edit manually
+- KB type directories (defined by `entity_types` in `_meta/wiki.config.yaml` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) are LLM-maintained only — never edit manually
 - `wiki/workspaces/` is for actor-created content (human or agent) — skills never modify workspace content
 - `raw/` is append-only during normal operation — do not modify or delete via `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`
 - All files require YAML frontmatter (see `_meta/schemas/frontmatter.yaml`)
