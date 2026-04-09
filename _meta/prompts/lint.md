@@ -7,7 +7,7 @@ Run semantic validation checks on the wiki. Produces report at `output/reports/l
 
 ## Checks
 1. Validate all frontmatter against `_meta/schemas/frontmatter.yaml`
-   - KB articles (in `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`): full `kb_shared` schema
+   - KB articles (in directories defined by `entity_types[].dir` in `wiki.config.yaml`): full `kb_shared` schema
    - Workspace files (in `wiki/workspaces/`): light `workspace` schema (title, created only)
 2. Check for broken `[[wikilinks]]` (target file must exist within `wiki/`)
 3. Find orphaned articles (no inbound links via `_backlinks.md`)

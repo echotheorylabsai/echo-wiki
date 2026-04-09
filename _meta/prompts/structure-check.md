@@ -6,16 +6,19 @@ Referenced by: `/compile`, `/rebuild`, `/lint`, `/index`, `/ingest`
 
 ## Required Paths
 
+Read `entity_types` from `_meta/wiki.config.yaml` to determine KB directories.
+
 | Path | Type | Recovery |
 |---|---|---|
 | `wiki/` | directory | Create it |
-| `wiki/concepts/` | directory | Create it |
-| `wiki/people/` | directory | Create it |
-| `wiki/tools/` | directory | Create it |
-| `wiki/sources/` | directory | Create it |
+| `wiki/<entity_types[].dir>/` | directory (one per configured type) | Create it |
 | `wiki/workspaces/` | directory | Create with `my-notes/.gitkeep` inside |
-| `wiki/_index.md` | file | Create scaffold with section headers |
+| `wiki/_index.md` | file | Create scaffold with section headers from config |
 | `wiki/_backlinks.md` | file | Create with `# Backlinks` header |
+
+For the default config, KB directories are: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`.
+
+**Note:** `wiki/_log.md` is not required — it is created automatically by the first skill invocation. If present, it must be preserved (never deleted by any skill or rebuild).
 
 ## Behavior
 
@@ -26,21 +29,21 @@ For each required path:
 
 ## _index.md Scaffold
 
-If `wiki/_index.md` must be recreated:
+If `wiki/_index.md` must be recreated, generate section headers from `entity_types[].label` in config, plus Workspaces:
 
 ```
 # Wiki Index
 
-## Concepts
+## <entity_types[0].label>
 
-## People
+## <entity_types[1].label>
 
-## Tools
-
-## Sources
+... (one per configured entity type)
 
 ## Workspaces
 ```
+
+For the default config, this produces: Concepts, People, Tools, Sources, Workspaces.
 
 ## Important
 

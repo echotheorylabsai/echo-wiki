@@ -6,25 +6,25 @@ Triggered by `/compile`, `/rebuild`, and `/index`.
 
 ## _index.md Format
 
+Read `entity_types` from `_meta/wiki.config.yaml`. Generate one section per entity type using its `label`, plus a Workspaces section at the end.
+
 ```
 # Wiki Index
 
-## Concepts
-- [[concepts/<name>|<Title>]] — <one-line summary>
+## <entity_types[0].label>
+- [[<entity_types[0].dir>/<name>|<Title>]] — <one-line summary>
 
-## People
-- [[people/<name>|<Title>]] — <one-line summary>
+## <entity_types[1].label>
+- [[<entity_types[1].dir>/<name>|<Title>]] — <one-line summary>
 
-## Tools
-- [[tools/<name>|<Title>]] — <one-line summary>
-
-## Sources
-- [[sources/<name>|<Title>]] — <one-line summary>
+... (one section per configured entity type)
 
 ## Workspaces
 ### <workspace-name>
 - [[workspaces/<workspace-name>/<file>|<Title>]] — <summary or title>
 ```
+
+For the default config, sections are: Concepts, People, Tools, Sources, Workspaces.
 
 Sorted alphabetically within each section. For workspace files without a `summary` frontmatter field, use just the title.
 
@@ -45,5 +45,6 @@ For each article in `wiki/`, scan ALL other files (KB + workspaces) for wikilink
 
 When regenerating, scan ALL `.md` files in `wiki/` recursively. Skip:
 - `_index.md` and `_backlinks.md` themselves
+- `_log.md` (activity log — not indexed)
 - Files in `wiki/.obsidian/`
 - Non-`.md` files
