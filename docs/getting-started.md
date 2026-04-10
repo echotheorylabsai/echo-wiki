@@ -100,7 +100,8 @@ my-wiki/
 │   ├── workspaces/            # Your notes + agent workspaces
 │   │   └── my-notes/          # Default human workspace
 │   ├── _index.md              # Master index
-│   └── _backlinks.md          # Cross-reference map
+│   ├── _backlinks.md          # Cross-reference map
+│   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
 ├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)
