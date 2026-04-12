@@ -14,8 +14,8 @@ Run semantic validation checks on the wiki. Produces report at `output/reports/l
 4. Detect contradictory claims across related KB articles (skip workspace content)
 5. Flag stale content: `last_verified` + decay_rate threshold exceeded (skip workspace content)
    - fast: 30 days, medium: 90 days, slow: 365 days
-6. Suggest missing concepts (topics frequently referenced but no article)
-7. Detect duplicate concepts (different articles about the same entity)
+6. Suggest missing entity candidates (topics frequently referenced but lacking their own article in the appropriate KB type directory per `entity_types` config)
+7. Detect duplicate entities (different articles about the same entity)
 
 ## Progressive Loading
 - Start with `wiki/_index.md` + `wiki/_backlinks.md`

@@ -71,7 +71,7 @@ Open Obsidian → File → Open folder as vault → select the **`wiki/`** direc
 
 The vault comes pre-configured with:
 - Wikilinks enabled
-- Graph view color groups for default entity types (concepts=blue, people=green, tools=orange, sources=gray, workspaces=purple)
+- Graph view color groups for default entity types (concepts=blue, people=green, tools=orange, sources=gray, workspaces=purple). If you customize `entity_types`, see [Obsidian Integration](/obsidian#graph-view) to add color groups for your custom directories.
 - Frontmatter display
 - A default `workspaces/my-notes/` directory for your personal notes
 

@@ -76,11 +76,11 @@ Report stale articles with their last verified date and how many days overdue.
 
 - Skip workspace files (they don't have `last_verified` or `decay_rate` fields)
 
-### Check 6: Missing Concept Candidates
+### Check 6: Missing Entity Candidates
 
 Scan all article body text for topics that are:
 - Mentioned in multiple articles (3+ mentions across different files)
-- Not yet their own article in `wiki/concepts/`
+- Not yet their own article in any KB type directory (read `entity_types` from `_meta/wiki.config.yaml` to determine which directories to check)
 - Significant enough to warrant their own article (not just passing references)
 
 Report as suggestions with the count of mentions and which articles reference them.
@@ -88,7 +88,7 @@ Report as suggestions with the count of mentions and which articles reference th
 ### Check 7: Duplicate Detection
 
 Compare all article titles and summaries for potential duplicates:
-- Same concept under different names (e.g., "LLM" vs "Large Language Model")
+- Same entity under different names (e.g., "LLM" vs "Large Language Model")
 - Very similar summaries suggesting overlapping content
 - Report potential duplicates with both file paths and a confidence level
 
