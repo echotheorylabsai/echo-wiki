@@ -35,19 +35,20 @@ Find all `.md` files recursively in `wiki/`. Exclude:
 - `wiki/_index.md` (this is what we're regenerating)
 - `wiki/_backlinks.md` (this is what we're regenerating)
 - Any files in `wiki/.obsidian/`
+- `wiki/_log.md` (activity log — not indexed)
 
 ### Step 2: Read Frontmatter
 
 For each file found, read its YAML frontmatter. Extract:
 - `title` (required — skip file with warning if missing)
-- `type` (for KB articles: concept, person, tool, source-summary)
+- `type` (for KB articles: read valid types from `entity_types` in `_meta/wiki.config.yaml`)
 - `summary` (optional — use title if absent)
 - All `[[wikilinks]]` in the file body
 
 ### Step 3: Regenerate _index.md
 
 Follow the format defined in `_meta/prompts/index-update.md`:
-- Group KB articles by type section (Concepts, People, Tools, Sources)
+- Group KB articles by type section — read `entity_types` from config, use each type's `label` as the section header and `dir` for grouping
 - Group workspace files under Workspaces section, sub-grouped by workspace name
 - Sort entries alphabetically within each section
 - One line per article: `- [[path|Title]] — summary`
@@ -65,6 +66,16 @@ Print summary:
 
 ```
 Index updated. X KB articles, Y workspace files indexed.
+```
+
+### Step 6: Append to Activity Log
+
+Append an entry to `wiki/_log.md`:
+
+```markdown
+## [YYYY-MM-DD] index
+KB articles indexed: <X>
+Workspace files indexed: <Y>
 ```
 
 ## Important Rules

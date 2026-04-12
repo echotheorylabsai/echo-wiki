@@ -16,18 +16,37 @@ frontmatter() {
     awk 'BEGIN{c=0}/^---$/{c++;next}c==1{print}c==2{exit}' "$1"
 }
 
+# Extract entity_types from config (returns pipe-delimited type names)
+extract_valid_types() {
+    awk '
+      /^entity_types:/ { in_block=1; next }
+      /^[^ ]/ && in_block { in_block=0 }
+      in_block && /- name:/ {
+        sub(/.*- name:[[:space:]]*/, ""); sub(/[[:space:]]*$/, "")
+        types = (types ? types "|" : "") $0
+      }
+      END { print types ? types : "concept|person|tool|source-summary" }
+    ' "$WIKI_ROOT/_meta/wiki.config.yaml"
+}
+
+# Extract entity_types dirs from config (one per line, prefixed with wiki/)
+extract_kb_dirs() {
+    awk '
+      /^entity_types:/ { in_block=1; next }
+      /^[^ ]/ && in_block { in_block=0 }
+      in_block && /dir:/ {
+        sub(/.*dir:[[:space:]]*/, ""); sub(/[[:space:]]*$/, "")
+        print "wiki/" $0
+      }
+    ' "$WIKI_ROOT/_meta/wiki.config.yaml"
+}
+
 # --- Phase 0: Structure integrity check ---
 
-PROTECTED_PATHS=(
-  "wiki"
-  "wiki/_index.md"
-  "wiki/_backlinks.md"
-  "wiki/concepts"
-  "wiki/people"
-  "wiki/tools"
-  "wiki/sources"
-  "wiki/workspaces"
-)
+PROTECTED_PATHS=("wiki" "wiki/_index.md" "wiki/_backlinks.md" "wiki/workspaces")
+while IFS= read -r d; do
+    [ -n "$d" ] && PROTECTED_PATHS+=("$d")
+done <<< "$(extract_kb_dirs)"
 
 for path in "${PROTECTED_PATHS[@]}"; do
   if [ ! -e "$WIKI_ROOT/$path" ]; then
@@ -47,10 +66,14 @@ fi
 
 # --- Get staged wiki files ---
 
+# Build KB dir regex from config
+KB_DIR_REGEX=$(extract_kb_dirs | sed 's|wiki/||' | paste -sd'|' -)
+KB_DIR_REGEX=${KB_DIR_REGEX:-"concepts|people|tools|sources"}
+
 STAGED_KB=()
 while IFS= read -r f; do
     [ -n "$f" ] && STAGED_KB+=("$f")
-done < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^wiki/(concepts|people|tools|sources)/.*\.md$' || true)
+done < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E "^wiki/(${KB_DIR_REGEX})/.*\\.md\$" || true)
 
 STAGED_WS=()
 while IFS= read -r f; do
@@ -97,10 +120,10 @@ for file in ${STAGED_KB[@]+"${STAGED_KB[@]}"}; do
     # Validate type enum
     type_val=$(echo "$fm" | grep '^type:' | head -1 | sed 's/^type:[[:space:]]*//' | tr -d "\"'" | xargs 2>/dev/null || true)
     if [ -n "$type_val" ]; then
-        case "$type_val" in
-            concept|person|tool|source-summary) ;;
-            *) echo "$file: invalid type '$type_val' (expected: concept|person|tool|source-summary)" >> "$ERR_FILE" ;;
-        esac
+        VALID_TYPES=$(extract_valid_types)
+        if ! printf '%s' "|${VALID_TYPES}|" | grep -q "|${type_val}|"; then
+            echo "$file: invalid type '$type_val' (expected: ${VALID_TYPES})" >> "$ERR_FILE"
+        fi
     fi
 
     # Check sources is non-empty (handles inline and multi-line YAML arrays)

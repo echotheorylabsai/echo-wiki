@@ -109,6 +109,16 @@ Field rules:
 - `ingestion_tool`: which tool was used (tavily, firecrawl, or local)
 - `tags`: match to domains from `wiki.config.yaml` based on content topic
 
+### Step 5b: Append to Activity Log
+
+Append an entry to `wiki/_log.md`. If the file doesn't exist, create it with a `# Activity Log` header first.
+
+```markdown
+## [YYYY-MM-DD] ingest | <Source Title>
+Sources: <raw file path>
+Ingestion tool: <tavily|firecrawl|local>
+```
+
 ### Step 6: Proceed to Compile
 
 After successful ingestion, immediately run the compile operation on the newly ingested source(s). Read `.claude/skills/compile/SKILL.md` and follow its instructions.

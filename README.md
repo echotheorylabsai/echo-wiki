@@ -38,11 +38,12 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
 raw/                          wiki/ (Obsidian vault)
 ├── blogs/                    ├── _index.md        <- Master index
 │   └── source-article.md    ├── _backlinks.md    <- Cross-reference map
-├── papers/                   ├── concepts/        <- Ideas & theories
-├── people/                   │   └── topic.md
-├── substacks/                ├── people/          <- Key figures
-├── github/                   │   └── person.md
-└── media/                    ├── tools/           <- Software & platforms
+├── papers/                   ├── _log.md          <- Activity log (auto-created)
+├── people/                   ├── concepts/        <- Default entity types
+├── substacks/                │   └── topic.md
+├── github/                   ├── people/          <- (configurable via
+└── media/                    │   └── person.md
+                              ├── tools/           <-  entity_types in config)
                               │   └── tool.md
                               ├── sources/         <- Source summaries
                               │   └── summary.md
@@ -86,6 +87,24 @@ wiki:
 domains:
   - name: "topic"
     label: "Topic Label"
+
+entity_types:                  # What kinds of articles to create
+  - name: concept              # (defaults shown — customize for your domain)
+    dir: concepts
+    label: Concepts
+    description: "Ideas, theories, patterns"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
 
 vault:
   dir: wiki
@@ -145,7 +164,7 @@ wiki/workspaces/
     raw source --------+                       |
          |                                     |
          v                                     |
-    Extract: concepts, people, tools           |
+    Extract entities (per config entity_types)  |
          |                                     |
          v                                     |
     For each entity:                           |
@@ -154,6 +173,7 @@ wiki/workspaces/
          |                                     |
          v                                     |
     Update _index.md + _backlinks.md           |
+    Append to _log.md                          |
          |                                     |
          v                                     |
     wiki/ <-- ready for Obsidian               |
@@ -194,14 +214,15 @@ echo-wiki/
 │   └── schemas/               # Frontmatter validation schema
 ├── raw/                       # Source documents (append-only, backend)
 ├── wiki/                      # Obsidian vault (user-facing)
-│   ├── concepts/              # KB: ideas, theories, patterns
-│   ├── people/                # KB: key figures
-│   ├── tools/                 # KB: software, platforms
-│   ├── sources/               # KB: source summaries
+│   ├── concepts/              # KB: default entity type directories
+│   ├── people/                #     (configurable via entity_types in config)
+│   ├── tools/
+│   ├── sources/
 │   ├── workspaces/            # Actor workspaces (human + agent)
 │   │   └── my-notes/          # Default human workspace
 │   ├── _index.md              # Master index
-│   └── _backlinks.md          # Cross-reference map
+│   ├── _backlinks.md          # Cross-reference map
+│   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # pre-commit.sh, token-count.sh
 ├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)

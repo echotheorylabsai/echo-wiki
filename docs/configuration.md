@@ -14,6 +14,24 @@ domains:                              # Knowledge domains (used in frontmatter t
     label: "Topic Label"              # Human-readable label
     decay_rate_override: fast          # Optional: overrides global default
 
+entity_types:                         # KB article types and directories
+  - name: concept                     # Frontmatter type value (kebab-case)
+    dir: concepts                     # Directory under wiki/
+    label: Concepts                   # Section header in _index.md
+    description: "Ideas, theories, patterns, methodologies, principles"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, founders, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks, products, services"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
+
 source_types:                         # Allowed source types
   - blog
   - paper
@@ -53,6 +71,48 @@ Domains are the knowledge areas your wiki covers. They drive the `tags` field in
 | Finance | `equities`, `macro`, `crypto`, `options`, `portfolio` |
 | Healthcare | `clinical-trials`, `genomics`, `devices`, `policy` |
 | Marketing | `seo`, `content`, `paid-ads`, `analytics` |
+
+## Entity Types
+
+Entity types define what kinds of articles your wiki contains and where they live. Each type maps to a directory under `wiki/`.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `name` | Yes | Value used in frontmatter `type:` field. Kebab-case. |
+| `dir` | Yes | Directory name under `wiki/`. Auto-created if missing. |
+| `label` | Yes | Human-readable section header in `_index.md`. |
+| `description` | Yes | Guides LLM entity extraction during `/compile`. Also documents the type. |
+
+**`source-summary` is special** — it's auto-created per raw source during `/compile`, not extracted from content. Every wiki should include it.
+
+**Examples by domain:**
+
+| Domain | Entity Types |
+|---|---|
+| AI Research | concept, person, tool, source-summary (defaults) |
+| Finance | company, indicator, market, source-summary |
+| Healthcare | condition, treatment, study, source-summary |
+| Marketing | channel, campaign, metric, source-summary |
+
+**Custom type example:**
+
+```yaml
+entity_types:
+  - name: company
+    dir: companies
+    label: Companies
+    description: "Public companies, startups, investment funds, corporate entities"
+  - name: indicator
+    dir: indicators
+    label: Indicators
+    description: "Financial metrics, ratios, economic indicators (P/E, RSI, GDP, CPI)"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
+```
+
+The LLM uses each type's `description` to decide what entities to extract during `/compile`. No code changes needed — just edit config and start ingesting.
 
 ## Decay Rates
 

@@ -50,37 +50,36 @@ If no raw source files were found in Step 2:
 
 ### Step 4: Wipe KB Type Directories
 
-Delete all `.md` files recursively inside these 4 directories only:
-- `wiki/concepts/`
-- `wiki/people/`
-- `wiki/tools/`
-- `wiki/sources/`
+Read `entity_types` from `_meta/wiki.config.yaml`. Delete all `.md` files recursively inside each configured type's directory (`wiki/<entity_types[].dir>/`).
+
+For the default config, this means: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`.
 
 **NEVER delete or modify:**
 - `wiki/workspaces/` (actor workspace content)
 - `wiki/.obsidian/` (Obsidian vault config)
 - `wiki/_index.md` (will be regenerated in Step 7)
 - `wiki/_backlinks.md` (will be regenerated in Step 7)
+- `wiki/_log.md` (activity log — append-only, preserved across rebuilds)
 
 Preserve the directory structure (empty folders are fine). Do NOT touch `raw/` or any other directory.
 
 ### Step 5: Create Empty Index Scaffold
 
-Create a fresh `wiki/_index.md` with empty sections:
+Read `entity_types` from config. Create a fresh `wiki/_index.md` with one empty section per configured type (using `label`), plus Workspaces:
 
 ```markdown
 # Wiki Index
 
-## Concepts
+## <entity_types[0].label>
 
-## People
+## <entity_types[1].label>
 
-## Tools
-
-## Sources
+... (one per configured entity type)
 
 ## Workspaces
 ```
+
+For the default config: Concepts, People, Tools, Sources, Workspaces.
 
 ### Step 6: Replay Each Source
 
@@ -114,6 +113,14 @@ If any sources were skipped due to errors, include:
 
 ```
 Rebuild complete. X sources processed, Y articles created. Z sources skipped (see warnings above).
+```
+
+After printing the summary, append an entry to `wiki/_log.md`:
+
+```markdown
+## [YYYY-MM-DD] rebuild
+Sources processed: <X>
+Articles created: <Y>
 ```
 
 ## Error Handling

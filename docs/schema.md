@@ -4,12 +4,12 @@ Every file in `wiki/` requires YAML frontmatter. The schema is defined at `_meta
 
 ## KB Articles (Full Schema)
 
-Files in `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`:
+Files in KB type directories (defined by `entity_types` in config — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`):
 
 ```yaml
 ---
 title: "Article Title"
-type: concept | person | tool | source-summary
+type: <entity_types[].name from config>   # default: concept | person | tool | source-summary
 created: 2026-04-04
 last_updated: 2026-04-04
 last_verified: 2026-04-04
@@ -32,6 +32,8 @@ summary: "One-line summary for index"
 | `person` | `role`, `affiliations`, `follows` |
 | `tool` | `category` (framework/platform/service/product), `repo`, `maintained` |
 | `source-summary` | `source_url`, `source_type`, `author`, `source_date` |
+
+**Custom entity types** don't require type-specific field definitions. The LLM infers appropriate fields from the type's `description` in config during `/compile`. For stricter `/lint` validation, you can optionally define type-specific fields in `_meta/schemas/frontmatter.yaml`.
 
 ## Workspace Files (Light Schema)
 

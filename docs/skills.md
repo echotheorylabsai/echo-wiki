@@ -4,6 +4,8 @@ Echo Wiki uses [Agent Skills](https://agentskills.io) to manage the wiki pipelin
 
 All skills run a structure check (Step 0) before starting. If any required wiki paths are missing, the skill recreates them automatically. See `_meta/prompts/structure-check.md` for details.
 
+All skills append an entry to `wiki/_log.md` after completing — a chronological, parseable record of every operation. The log is auto-created on first use and preserved across rebuilds.
+
 ## /ingest
 
 **Fetch and clean source content into `raw/`.**
@@ -18,7 +20,8 @@ What it does:
 2. Fetches content via Tavily or Firecrawl
 3. Downloads images locally
 4. Writes clean markdown with frontmatter to `raw/`
-5. Automatically triggers `/compile`
+5. Appends entry to `wiki/_log.md`
+6. Automatically triggers `/compile`
 
 **Source type detection:**
 
@@ -43,12 +46,13 @@ What it does:
 What it does:
 1. Reads raw source(s)
 2. Creates source-summary in `wiki/sources/`
-3. Extracts concepts, people, and tools
+3. Extracts entities based on configured `entity_types` (default: concepts, people, tools)
 4. Creates new articles or merges into existing ones (never overwrites)
 5. Adds `[[wikilinks]]` between related articles
 6. Regenerates `_index.md` and `_backlinks.md` (includes workspace content)
+7. Appends entry to `wiki/_log.md`
 
-**Four KB categories:**
+**KB entity types** (configurable in `_meta/wiki.config.yaml`):
 
 | Type | Directory | Examples |
 |---|---|---|
@@ -56,6 +60,8 @@ What it does:
 | People | `wiki/people/` | Researchers, authors, key figures |
 | Tools | `wiki/tools/` | Software, platforms, frameworks |
 | Sources | `wiki/sources/` | Summary of each raw source |
+
+These are the defaults. Custom wikis can define different entity types — see [Configuration](/configuration#entity-types).
 
 ## /rebuild
 
@@ -70,10 +76,11 @@ Use this after manually deleting one or more raw source files. The `/compile` sk
 What it does:
 1. Collects all remaining raw sources (`raw/**/*.md`)
 2. If no sources found, aborts safely — KB directories are **not** wiped
-3. Deletes all files in KB type directories (`wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
-4. **Preserves `wiki/workspaces/` and `wiki/.obsidian/`** — workspace content is never touched
+3. Deletes all files in KB type directories (configured via `entity_types` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
+4. **Preserves `wiki/workspaces/`, `wiki/.obsidian/`, and `wiki/_log.md`** — workspace content and activity log are never touched
 5. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
 6. Regenerates `_index.md` and `_backlinks.md` (includes preserved workspace content)
+7. Appends rebuild summary to `wiki/_log.md`
 
 **Removing a source from the wiki:**
 
@@ -105,6 +112,7 @@ What it does:
 1. Scans all `.md` files in `wiki/` (KB articles + workspace content)
 2. Regenerates `_index.md` with all entries grouped by type and workspace
 3. Regenerates `_backlinks.md` with cross-zone references
+4. Appends entry to `wiki/_log.md`
 
 This is a non-destructive operation — it only reads content and rewrites the two index files.
 
@@ -119,7 +127,7 @@ This is a non-destructive operation — it only reads content and rewrites the t
 /lint --domain llm       # Lint articles tagged with a specific domain
 ```
 
-Produces a report at `output/reports/lint-<date>.md` with 7 checks:
+Produces a report at `output/reports/lint-<date>.md` and appends a summary to `wiki/_log.md`. Runs 7 checks:
 
 1. **Frontmatter validation** — required fields, valid enums, type-specific fields (KB: full schema, workspaces: light schema)
 2. **Broken wikilinks** — every `[[link]]` must resolve to a real file within `wiki/`

@@ -27,9 +27,16 @@ Transform raw source documents into structured wiki articles in `wiki/`.
 - NEVER remove or overwrite existing content
 
 ## Compiled Type Mapping
-| type | directory |
-|---|---|
-| concept | wiki/concepts/ |
-| person | wiki/people/ |
-| tool | wiki/tools/ |
-| source-summary | wiki/sources/ |
+
+Read `entity_types` from `_meta/wiki.config.yaml`. Each entry maps `name` → `wiki/<dir>/`.
+
+Default mapping (ships with framework):
+
+| type | directory | description |
+|---|---|---|
+| concept | wiki/concepts/ | Ideas, theories, patterns, methodologies, principles |
+| person | wiki/people/ | Researchers, authors, founders, key figures |
+| tool | wiki/tools/ | Software, platforms, frameworks, products, services |
+| source-summary | wiki/sources/ | Summaries of ingested raw sources |
+
+Custom wikis may have different types — always read from config, never assume these defaults.
