@@ -5,7 +5,7 @@ description: Run semantic validation checks on the compiled wiki and produce an 
 
 # Lint
 
-Validate the wiki for structural and semantic issues. Produce an actionable report.
+Validate the wiki for structural and semantic issues. Produce an actionable report. Deterministic checks are delegated to `./hooks/validate.sh`; LLM reasoning is spent only on the semantic checks a script cannot do.
 
 ## Prerequisites
 
@@ -28,36 +28,21 @@ Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompt
 
 Run all 7 checks. For each issue found, record the file path, issue type, and suggested fix.
 
-### Check 1: Frontmatter Validation
+### Check 1: Deterministic Validation (script)
 
-For every article in scope (excluding `_index.md` and `_backlinks.md`):
-- All required fields present (see schema: title, type, created, last_updated, last_verified, decay_rate, confidence, tags, sources, related, summary)
-- `type` is valid: must match one of the `name` values from `entity_types` in `_meta/wiki.config.yaml`
-- `decay_rate` is valid: fast, medium, slow
-- `confidence` is valid: high, medium, speculative
-- Type-specific fields present (e.g., concept needs `domain`, person needs `role`)
-- `tags` values exist in `wiki.config.yaml` domains
-- Dates are valid YYYY-MM-DD format
+Run `./hooks/validate.sh --all` (or with the scoped paths). Fold every reported violation into the report as a Critical Issue, verbatim.
 
-**Workspace files** (in `wiki/workspaces/`): validate with light `workspace` schema — only check `title` and `created` are present with valid date format. Skip `type`, `sources`, `confidence`, `decay_rate`, and type-specific field checks.
+This covers the full frontmatter schema (required fields, type/decay/confidence enums, date formats, tags vs domains), source-path existence, filename rules, and broken wikilinks — do not re-check any of these manually; the script is authoritative.
 
-### Check 2: Broken Wikilinks
+### Check 2: Orphaned Articles
 
-For every `[[wikilink]]` in every file in `wiki/` (KB articles and workspace files):
-- Extract the link path (strip display alias after `|`)
-- Verify target file exists within `wiki/`: `wiki/${link}.md`
-- No special handling for `raw/` prefix (raw references are plain strings in frontmatter, not wikilinks)
-- Report each broken link with the file it appears in
+`wiki/_backlinks.md` marks orphans explicitly: every section reading `_No inbound links._` is an article with zero inbound links.
 
-### Check 3: Orphaned Articles
+- Collect them from `_backlinks.md` (e.g. the section headers directly above each `_No inbound links._` marker)
+- Report orphans (KB articles and workspace files alike) with a suggestion to add links from related articles
+- `_index.md`, `_backlinks.md`, and `_log.md` are exempt (they are not indexed)
 
-Using `_backlinks.md`, find articles with zero inbound links:
-- Every compiled article should be linked from at least one other article or from `_index.md`
-- `_index.md` and `_backlinks.md` themselves are exempt
-- Report orphans with suggestion to add links from related articles
-- Include workspace files in orphan detection — workspace files with zero inbound links should be reported
-
-### Check 4: Contradictory Claims
+### Check 3: Contradictory Claims
 
 Load pairs of related articles (from `related:` fields) and compare:
 - Do they make conflicting factual claims about the same topic?
@@ -65,7 +50,7 @@ Load pairs of related articles (from `related:` fields) and compare:
 - Report contradictions with both file paths and the specific conflicting text
 - Note: This check requires LLM reasoning — compare claims semantically, not just string matching
 
-### Check 5: Stale Content
+### Check 4: Stale Content
 
 For each article, compare `last_verified` date against today using decay rate thresholds:
 - `fast`: stale if `last_verified` > 30 days ago
@@ -76,7 +61,7 @@ Report stale articles with their last verified date and how many days overdue.
 
 - Skip workspace files (they don't have `last_verified` or `decay_rate` fields)
 
-### Check 6: Missing Entity Candidates
+### Check 5: Missing Entity Candidates
 
 Scan all article body text for topics that are:
 - Mentioned in multiple articles (3+ mentions across different files)
@@ -85,12 +70,21 @@ Scan all article body text for topics that are:
 
 Report as suggestions with the count of mentions and which articles reference them.
 
-### Check 7: Duplicate Detection
+### Check 6: Duplicate Detection
 
 Compare all article titles and summaries for potential duplicates:
 - Same entity under different names (e.g., "LLM" vs "Large Language Model")
 - Very similar summaries suggesting overlapping content
 - Report potential duplicates with both file paths and a confidence level
+
+### Check 7: Source Fidelity (Sampled)
+
+Select 3 articles in scope (or all, if fewer) — prefer the most recently updated (`last_updated`). For each:
+1. Read the article and every raw file in its `sources:` list
+2. Verify each factual claim in the article is traceable to at least one cited source
+3. Report untraceable claims as Warnings, quoting the claim and naming the article and its cited sources
+
+This is the hallucination guard for `/compile` output. Reasonable inferences must be marked as such in the article per the compile fidelity rules — unmarked inferences count as untraceable.
 
 ## Report Output
 
@@ -104,10 +98,10 @@ Write the report to `output/reports/lint-<YYYY-MM-DD>.md`:
 **Issues found:** <count by severity>
 
 ## Critical Issues
-<issues that must be fixed: broken links, missing required fields>
+<issues that must be fixed: validate.sh violations, contradictions>
 
 ## Warnings
-<issues that should be addressed: stale content, orphans, potential duplicates>
+<issues that should be addressed: stale content, orphans, potential duplicates, untraceable claims>
 
 ## Suggestions
 <nice-to-have improvements: missing concepts, link additions>
@@ -130,3 +124,4 @@ Report: output/reports/lint-<YYYY-MM-DD>.md
 - For contradiction detection, load related article pairs together
 - Do not auto-fix issues — report them for the user to review
 - Be specific: include file paths, line references, and exact text in all reports
+- Do not spend LLM effort re-doing what `validate.sh` already checked

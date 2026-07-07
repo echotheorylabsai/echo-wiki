@@ -109,7 +109,11 @@ Field rules:
 - `ingestion_tool`: which tool was used (tavily, firecrawl, or local)
 - `tags`: match to domains from `wiki.config.yaml` based on content topic
 
-### Step 5b: Append to Activity Log
+### Step 5b: Validate Raw File
+
+Run `./hooks/validate.sh raw/<category>/<filename>.md`. If violations are reported, fix the raw file's frontmatter and re-run until it prints `OK` before proceeding.
+
+### Step 5c: Append to Activity Log
 
 Append an entry to `wiki/_log.md`. If the file doesn't exist, create it with a `# Activity Log` header first.
 

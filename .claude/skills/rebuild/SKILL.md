@@ -24,7 +24,7 @@ After manually deleting one or more raw source files from `raw/`. The `/compile`
 
 | Level | Load | When |
 |---|---|---|
-| L0 | `wiki/_index.md` | After creating empty scaffold (Step 5) |
+| L0 | `wiki/_index.md` | After running reindex.sh (Step 5) |
 | L1 | `wiki/_backlinks.md` | During Step 7 |
 | L2 | Specific `wiki/<type>/<article>.md` | During merge checks in Step 6 |
 | L3 | Specific `raw/<category>/<source>.md` | Reading each source in Step 6 |
@@ -65,21 +65,7 @@ Preserve the directory structure (empty folders are fine). Do NOT touch `raw/` o
 
 ### Step 5: Create Empty Index Scaffold
 
-Read `entity_types` from config. Create a fresh `wiki/_index.md` with one empty section per configured type (using `label`), plus Workspaces:
-
-```markdown
-# Wiki Index
-
-## <entity_types[0].label>
-
-## <entity_types[1].label>
-
-... (one per configured entity type)
-
-## Workspaces
-```
-
-For the default config: Concepts, People, Tools, Sources, Workspaces.
+Run `./hooks/reindex.sh`. With the KB type directories just wiped, it produces the empty scaffold (section headers from config, plus Workspaces) and backlinks for any preserved workspace content. Never hand-write the scaffold; if the script fails, stop and report its error output verbatim.
 
 ### Step 6: Replay Each Source
 
@@ -95,11 +81,11 @@ For each raw source, in sorted order:
 
 ### Step 7: Regenerate Index and Backlinks
 
-After all sources have been processed, run the compile step named **Update Index and Backlinks**:
-- Regenerate `wiki/_index.md` with all articles, sorted alphabetically within each section
-- Regenerate `wiki/_backlinks.md` with complete cross-reference map
+After all sources have been processed, run `./hooks/reindex.sh`. It scans ALL of `wiki/` (including preserved `wiki/workspaces/` content), so workspace entries appear in both files after rebuild. If the script fails, stop and report its error output verbatim.
 
-**Important:** When regenerating `_index.md` and `_backlinks.md`, scan ALL of `wiki/` including preserved `wiki/workspaces/` content. Workspace entries must appear in both files after rebuild.
+### Step 7b: Validate the Rebuilt Wiki
+
+Run `./hooks/validate.sh --all`. If violations are reported, fix the offending articles (re-applying compile rules) and re-run until it prints `OK`. Do not report the rebuild as complete with outstanding violations.
 
 ### Step 8: Report Results
 
