@@ -6,6 +6,10 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
 
 ## How It Works
 
+![Echo Wiki — end-to-end flow: add sources, /ingest files receipts into raw/, /compile builds the wiki/ knowledge base, then humans use Obsidian and agents use /query — all on deterministic script rails](docs/public/assets/echo-wiki-flow.png)
+
+*The full pipeline: sources → `/ingest` → `raw/` receipts → `/compile` → `wiki/` knowledge → used via Obsidian, `/query` (with workspace write-back), and agents — with the deterministic script rails underneath. Editable source: [echo-wiki-flow.excalidraw](docs/public/assets/echo-wiki-flow.excalidraw).*
+
 ```
   URLs / Files / PDFs
          |
