@@ -1,53 +1,56 @@
 # Validation & Linting
 
-Echo Wiki uses two layers of validation: a structural pre-commit hook (no LLM required) and a semantic lint skill (LLM-powered).
+Echo Wiki uses two layers of validation: deterministic scripts (no LLM required) and a semantic lint skill (LLM-powered). The scripts are authoritative for everything mechanical; the LLM is spent only on checks a script cannot do.
+
+## validate.sh — Deterministic Schema Enforcement
+
+Enforces `_meta/schemas/frontmatter.yaml` mechanically:
+
+```bash
+./hooks/validate.sh              # same as --all
+./hooks/validate.sh --all        # every .md under wiki/ and raw/
+./hooks/validate.sh --staged     # staged files (what the pre-commit hook runs)
+./hooks/validate.sh <path>...    # explicit paths
+```
+
+Zones are inferred from paths: KB articles (`wiki/<entity dir>/`) get the full schema, `raw/` files get the raw schema, `wiki/workspaces/` files get the light schema.
+
+| Check | KB | raw/ | workspace |
+|---|---|---|---|
+| Frontmatter opens/closes | ✓ | ✓ | ✓ |
+| Required fields (full / raw / light schema) | 11 fields | 8 fields | `title`, `created` |
+| `type` matches `entity_types` in config | ✓ | — | — |
+| `decay_rate`, `confidence` enums | ✓ | — | — |
+| Dates are `YYYY-MM-DD` | ✓ | ✓ | ✓ |
+| `tags` values exist in config domains | ✓ | ✓ | — |
+| `sources` non-empty and every path exists on disk | ✓ | — | — |
+| `source_type` / `ingestion_tool` enums | — | ✓ | — |
+| Type-specific fields (built-in types) | ✓ | — | — |
+| Filename kebab-case, ≤ 60 chars | ✓ | ✓ | — |
+| Every `[[wikilink]]` resolves within `wiki/` | ✓ | — | ✓ |
+
+Custom entity types (beyond concept/person/tool/source-summary) are validated against the shared KB schema only — add entries to `kb_type_specific` in `_meta/schemas/frontmatter.yaml` and extend the script if you want stricter checks.
+
+A structure guard always runs first: `wiki/`, `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/workspaces/`, and every configured KB type directory must exist.
+
+## reindex.sh — Deterministic Index & Backlinks
+
+```bash
+./hooks/reindex.sh
+```
+
+Regenerates `wiki/_index.md` and `wiki/_backlinks.md` from the files on disk — config-driven sections, title-sorted entries, workspace grouping, cross-zone backlinks, and an explicit `_No inbound links._` marker for every orphan (which makes orphan detection a `grep`, not an LLM pass).
+
+Skills call this script; neither humans nor LLMs ever hand-write the two index files.
 
 ## Pre-commit Hook
 
-Automatically runs on every commit. Blocks commits with structural errors.
+A thin wrapper around `validate.sh --staged`. Blocks commits containing schema violations.
 
 **Install:**
 ```bash
 ln -sf ../../hooks/pre-commit.sh .git/hooks/pre-commit
 ```
-
-### Phase 0: Structure Guard
-
-Before validating any files, the hook checks that all protected wiki paths exist:
-
-| Protected Path | Purpose |
-|---|---|
-| `wiki/_index.md` | Master index |
-| `wiki/_backlinks.md` | Cross-reference map |
-| `wiki/<entity_types[].dir>/` | KB type directories (from config) |
-| `wiki/workspaces/` | Actor workspace root |
-
-KB type directories are read from `entity_types` in `_meta/wiki.config.yaml`. Default: `concepts/`, `people/`, `tools/`, `sources/`.
-
-If any path is missing, the commit is blocked with a clear message. Restore the path or run a skill (which auto-heals missing structure).
-
-### KB Article Validation (Full Schema)
-
-Files in KB type directories (from `entity_types` config):
-
-| Check | Method | Blocks commit? |
-|---|---|---|
-| Frontmatter exists | Regex for `---` header | Yes |
-| Required fields present | `title`, `type`, `created`, `summary`, `sources` | Yes |
-| `type` is valid enum | Must match `entity_types[].name` from config | Yes |
-| All `[[wikilinks]]` resolve | Target file must exist in `wiki/` | Yes |
-| `sources:` is non-empty | At least one entry | Yes |
-
-### Workspace Validation (Light Schema)
-
-Files in `wiki/workspaces/`:
-
-| Check | Method | Blocks commit? |
-|---|---|---|
-| Frontmatter exists | Regex for `---` header | Yes |
-| `title` present | Field check | Yes |
-| `created` present | Field check | Yes |
-| All `[[wikilinks]]` resolve | Target file must exist in `wiki/` | Yes |
 
 **Escape hatch:** `git commit --no-verify` for WIP commits.
 
@@ -57,9 +60,19 @@ Every skill runs a structure check (Step 0) before any work. If a required path 
 
 ## Semantic Lint
 
-Run on-demand via `/lint`. Requires an LLM agent. Produces detailed reports.
+Run on-demand via `/lint`. Requires an LLM agent. Produces detailed reports in `output/reports/`.
 
-See [Skills → /lint](/skills#lint) for the full list of 7 checks.
+The deterministic layer (check 1) is delegated to `validate.sh`; the LLM handles orphan triage, contradictions, staleness, missing entities, duplicates, and sampled source fidelity. See [Skills → /lint](/skills#lint) for the full list of 7 checks.
+
+## Tests
+
+The scripts are covered by fixture-based tests:
+
+```bash
+bash tests/run-tests.sh
+```
+
+Golden-file assertions for `reindex.sh` (populated + empty wikis), one fixture per validation error class for `validate.sh`, and a git-integration test that installs the pre-commit hook in a throwaway repo.
 
 ## Token Count
 

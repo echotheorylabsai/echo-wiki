@@ -129,6 +129,7 @@ See `.env.example` for required API keys.
 | `/index` | Rescan `wiki/` and update `_index.md` and `_backlinks.md` |
 | `/lint` | Run semantic checks, produce report |
 | `/lint all` | Lint entire wiki |
+| `/query <question>` | Answer from the wiki with citations; file durable answers to the actor's workspace |
 
 ## Workspaces
 
@@ -172,7 +173,8 @@ wiki/workspaces/
       new?    --> CREATE (full frontmatter)     |
          |                                     |
          v                                     |
-    Update _index.md + _backlinks.md           |
+    Run reindex.sh (_index + _backlinks)       |
+    Run validate.sh (schema gate)              |
     Append to _log.md                          |
          |                                     |
          v                                     |
@@ -186,17 +188,18 @@ wiki/workspaces/
 
 ## Validation
 
-**Pre-commit hook (automatic):**
-- Structure integrity — protected paths must exist
-- KB articles: frontmatter, required fields, type enum, wikilinks, sources
-- Workspace files: frontmatter, title, created
+**Deterministic scripts (no LLM):**
+- `./hooks/validate.sh [--all|--staged|<paths>]` — full frontmatter schema (required fields, enums, dates, tags vs domains), source-path existence, filename rules, wikilink resolution, structure integrity
+- `./hooks/reindex.sh` — regenerates `_index.md` and `_backlinks.md` deterministically; skills never hand-write them
+- **Pre-commit hook** runs `validate.sh --staged` automatically on every commit
 
-**Semantic lint (`/lint`, on-demand):**
+**Semantic lint (`/lint`, on-demand, LLM):**
 - Contradictory claims across articles
 - Stale content past decay thresholds
-- Orphaned articles (no inbound links)
+- Orphaned articles (from explicit `_No inbound links._` markers)
 - Missing concepts (referenced but no article)
 - Duplicate concepts under different names
+- Source fidelity (sampled) — claims must trace to cited raw sources
 
 **Token count (post-commit, informational):**
 ```bash
@@ -210,7 +213,7 @@ wiki/workspaces/
 echo-wiki/
 ├── _meta/
 │   ├── wiki.config.yaml      # Your wiki configuration
-│   ├── prompts/               # Reference docs for each operation
+│   ├── prompts/               # Shared step references (structure-check)
 │   └── schemas/               # Frontmatter validation schema
 ├── raw/                       # Source documents (append-only, backend)
 ├── wiki/                      # Obsidian vault (user-facing)
@@ -224,8 +227,9 @@ echo-wiki/
 │   ├── _backlinks.md          # Cross-reference map
 │   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
-├── hooks/                     # pre-commit.sh, token-count.sh
-├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)
+├── hooks/                     # pre-commit.sh, validate.sh, reindex.sh, token-count.sh
+├── tests/                     # Fixture-based tests for the hooks (run-tests.sh)
+├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index, query)
 ├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
