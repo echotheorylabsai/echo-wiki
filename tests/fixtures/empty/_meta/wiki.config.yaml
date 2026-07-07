@@ -1,0 +1,61 @@
+# Echo Wiki Configuration
+# This is the single file you edit to customize your wiki instance.
+# See README.md or https://echotheorylabsai.github.io/echo-wiki/ for docs.
+
+wiki:
+  name: "My Wiki"
+  description: "A knowledge base for..."
+
+domains:
+  - name: "general"
+    label: "General"
+  # Add your domains here. Examples:
+  # - name: "ai"
+  #   label: "Artificial Intelligence"
+  #   decay_rate_override: fast
+  # - name: "finance"
+  #   label: "Finance & Markets"
+
+entity_types:
+  - name: concept
+    dir: concepts
+    label: Concepts
+    description: "Ideas, theories, patterns, methodologies, principles"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, founders, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks, products, services"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
+
+source_types:
+  - blog
+  - paper
+  - tweet
+  - substack
+  - github
+  - podcast
+  - video
+
+ingestion:
+  tavily:
+    enabled: true
+  firecrawl:
+    enabled: false
+    api_key: "${FIRECRAWL_API_KEY}"
+
+defaults:
+  decay_rate: medium
+  confidence: medium
+
+vault:
+  dir: wiki
+  default_workspace: my-notes
+
+schema_version: 1

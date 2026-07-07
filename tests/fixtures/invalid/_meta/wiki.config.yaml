@@ -1,0 +1,47 @@
+# Fixture config — default entity types, two domains (bad-tag uses an unknown one)
+wiki:
+  name: "Invalid Fixture Wiki"
+  description: "Each article here violates exactly one rule"
+
+domains:
+  - name: "ai"
+    label: "Artificial Intelligence"
+  - name: "general"
+    label: "General"
+
+entity_types:
+  - name: concept
+    dir: concepts
+    label: Concepts
+    description: "Ideas, theories, patterns, methodologies, principles"
+  - name: person
+    dir: people
+    label: People
+    description: "Researchers, authors, founders, key figures"
+  - name: tool
+    dir: tools
+    label: Tools
+    description: "Software, platforms, frameworks, products, services"
+  - name: source-summary
+    dir: sources
+    label: Sources
+    description: "Summaries of ingested raw sources"
+
+source_types:
+  - blog
+  - paper
+  - tweet
+  - substack
+  - github
+  - podcast
+  - video
+
+defaults:
+  decay_rate: medium
+  confidence: medium
+
+vault:
+  dir: wiki
+  default_workspace: my-notes
+
+schema_version: 1
