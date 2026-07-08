@@ -203,44 +203,19 @@ Rules:
 
 ### Step 6: Update Index and Backlinks
 
-**Regenerate `wiki/_index.md`** completely.
+Run `./hooks/reindex.sh` and confirm it exits 0. It deterministically regenerates `wiki/_index.md` and `wiki/_backlinks.md` from the files on disk — all KB articles and workspace content, including cross-zone backlinks.
 
-Read `entity_types` from config. Create one section per type using its `label` as the heading and `dir` for the wikilink paths:
+- **Never hand-write `_index.md` or `_backlinks.md`.** The script is the single source of truth for their format.
+- If the script fails, stop and report its error output verbatim — do not fall back to manual regeneration.
 
-```markdown
-# Wiki Index
+### Step 7: Validate Written Articles
 
-## <entity_types[].label>
-- [[<dir>/<name>|<Title>]] — <summary from frontmatter>
+Run `./hooks/validate.sh <paths of every article created or updated in this run>`.
 
-... (one section per configured entity type)
-```
+- If violations are reported, fix the offending articles and re-run until it prints `OK`.
+- Do not proceed to the activity log with outstanding violations.
 
-For the default config, sections are: `## Concepts`, `## People`, `## Tools`, `## Sources`.
-
-- Sort entries alphabetically within each section
-- One line per article: wikilink + summary
-
-**Important:** The index must include ALL content in `wiki/`, not just KB articles. Scan `wiki/workspaces/` for workspace files and include them under a `## Workspaces` section, grouped by workspace name. For workspace files without a `summary` field, use just the title.
-
-**Regenerate `wiki/_backlinks.md`** completely:
-
-```markdown
-# Backlinks
-
-## [[<type>/<name>]]
-Linked from:
-- [[<type>/<article>]]
-- [[<type>/<article>]]
-```
-
-- For each article in `wiki/`, scan ALL other wiki files for wikilinks pointing to it
-- List every article that links to the target
-- Sort sections alphabetically
-
-**Important:** Backlinks must include cross-zone references. If a workspace file links to a KB article, that link appears in the KB article's backlinks entry.
-
-### Step 7: Append to Activity Log
+### Step 8: Append to Activity Log
 
 Append an entry to `wiki/_log.md`. If the file doesn't exist, create it with a `# Activity Log` header first.
 
@@ -267,3 +242,5 @@ Source summary: <source summary path>
 - **ALWAYS add at least one source** to every compiled article.
 - **Use wikilinks** for all cross-references in body text and `related:` frontmatter. The `sources:` field uses plain string paths (not wikilinks).
 - **Tags must come from** `wiki.config.yaml` domains list.
+- **Fidelity:** every factual claim in a KB article must be traceable to a source in its `sources:` list. Do not import uncited outside knowledge into KB articles.
+- **Inferences are marked:** connective claims that go beyond the sources must be attributed in-text ("this suggests…") and reflected in the article's `confidence` field (`speculative` if inference-heavy).

@@ -1,11 +1,11 @@
 ---
 name: index
-description: Scan wiki/ and regenerate _index.md and _backlinks.md to include all content
+description: Scan wiki/ and regenerate _index.md and _backlinks.md via the deterministic reindex script
 ---
 
 # Index
 
-Scan all content in `wiki/` (KB articles + workspace content) and regenerate the master index and backlinks files. Non-destructive — only reads content and rewrites `_index.md` and `_backlinks.md`.
+Regenerate the master index and backlinks files by running the deterministic reindex script. Non-destructive — only `_index.md` and `_backlinks.md` are rewritten.
 
 ## Prerequisites
 
@@ -22,55 +22,27 @@ Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompt
 - After any operation where `_index.md` may be out of sync with actual files
 - As a standalone reindex without recompiling
 
-## Context Loading
-
-1. Read `_meta/wiki.config.yaml` — domain context
-2. Read `_meta/schemas/frontmatter.yaml` — field definitions
-
 ## Steps
 
-### Step 1: Scan Wiki Directory
+### Step 1: Run the Reindex Script
 
-Find all `.md` files recursively in `wiki/`. Exclude:
-- `wiki/_index.md` (this is what we're regenerating)
-- `wiki/_backlinks.md` (this is what we're regenerating)
-- Any files in `wiki/.obsidian/`
-- `wiki/_log.md` (activity log — not indexed)
+Run `./hooks/reindex.sh`. It scans all of `wiki/` (KB articles + workspace content), reads `entity_types` from `_meta/wiki.config.yaml`, and regenerates `wiki/_index.md` and `wiki/_backlinks.md` deterministically — including cross-zone backlinks and explicit `_No inbound links._` orphan markers.
 
-### Step 2: Read Frontmatter
+**Never hand-write `_index.md` or `_backlinks.md`.** If the script fails, report its error output verbatim and stop.
 
-For each file found, read its YAML frontmatter. Extract:
-- `title` (required — skip file with warning if missing)
-- `type` (for KB articles: read valid types from `entity_types` in `_meta/wiki.config.yaml`)
-- `summary` (optional — use title if absent)
-- All `[[wikilinks]]` in the file body
+### Step 2: Report
 
-### Step 3: Regenerate _index.md
-
-Follow the format defined in `_meta/prompts/index-update.md`:
-- Group KB articles by type section — read `entity_types` from config, use each type's `label` as the section header and `dir` for grouping
-- Group workspace files under Workspaces section, sub-grouped by workspace name
-- Sort entries alphabetically within each section
-- One line per article: `- [[path|Title]] — summary`
-
-### Step 4: Regenerate _backlinks.md
-
-Follow the format defined in `_meta/prompts/index-update.md`:
-- For each file in `wiki/`, find all other files that contain a `[[wikilink]]` pointing to it
-- Include cross-zone references (workspace → KB, KB → workspace)
-- Sort sections alphabetically
-
-### Step 5: Report
-
-Print summary:
+Relay the script's summary line, e.g.:
 
 ```
-Index updated. X KB articles, Y workspace files indexed.
+Index updated. X KB articles, Y workspace files indexed. Z orphan(s).
 ```
 
-### Step 6: Append to Activity Log
+Also relay any stderr warnings (files skipped for missing titles, directories not in `entity_types` config) — these usually indicate content that needs fixing.
 
-Append an entry to `wiki/_log.md`:
+### Step 3: Append to Activity Log
+
+Append an entry to `wiki/_log.md`. If the file doesn't exist, create it with a `# Activity Log` header first.
 
 ```markdown
 ## [YYYY-MM-DD] index
@@ -80,7 +52,5 @@ Workspace files indexed: <Y>
 
 ## Important Rules
 
-- This skill is non-destructive — it only writes `_index.md` and `_backlinks.md`
+- This skill is non-destructive — only `_index.md` and `_backlinks.md` are rewritten, and only by the script
 - Never modify any article content or frontmatter
-- Include ALL files in `wiki/` regardless of zone (KB or workspace)
-- For workspace files without `summary`, use the title as the index entry

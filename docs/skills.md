@@ -20,8 +20,9 @@ What it does:
 2. Fetches content via Tavily or Firecrawl
 3. Downloads images locally
 4. Writes clean markdown with frontmatter to `raw/`
-5. Appends entry to `wiki/_log.md`
-6. Automatically triggers `/compile`
+5. Validates the raw file with `hooks/validate.sh`
+6. Appends entry to `wiki/_log.md`
+7. Automatically triggers `/compile`
 
 **Source type detection:**
 
@@ -49,8 +50,9 @@ What it does:
 3. Extracts entities based on configured `entity_types` (default: concepts, people, tools)
 4. Creates new articles or merges into existing ones (never overwrites)
 5. Adds `[[wikilinks]]` between related articles
-6. Regenerates `_index.md` and `_backlinks.md` (includes workspace content)
-7. Appends entry to `wiki/_log.md`
+6. Runs `hooks/reindex.sh` to regenerate `_index.md` and `_backlinks.md` deterministically (includes workspace content)
+7. Validates written articles with `hooks/validate.sh`, fixing violations before finishing
+8. Appends entry to `wiki/_log.md`
 
 **KB entity types** (configurable in `_meta/wiki.config.yaml`):
 
@@ -79,8 +81,9 @@ What it does:
 3. Deletes all files in KB type directories (configured via `entity_types` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`)
 4. **Preserves `wiki/workspaces/`, `wiki/.obsidian/`, and `wiki/_log.md`** — workspace content and activity log are never touched
 5. Replays each source chronologically (`ingested` date, oldest first) using the compile workflow
-6. Regenerates `_index.md` and `_backlinks.md` (includes preserved workspace content)
-7. Appends rebuild summary to `wiki/_log.md`
+6. Runs `hooks/reindex.sh` to regenerate `_index.md` and `_backlinks.md` (includes preserved workspace content)
+7. Validates the rebuilt wiki with `hooks/validate.sh --all`
+8. Appends rebuild summary to `wiki/_log.md`
 
 **Removing a source from the wiki:**
 
@@ -109,12 +112,12 @@ After rebuild, all articles unique to the deleted source are gone, and multi-sou
 Use this after manually creating or modifying workspace content (notes, drafts, etc.) to update the master index.
 
 What it does:
-1. Scans all `.md` files in `wiki/` (KB articles + workspace content)
-2. Regenerates `_index.md` with all entries grouped by type and workspace
-3. Regenerates `_backlinks.md` with cross-zone references
+1. Runs `hooks/reindex.sh`, which scans all `.md` files in `wiki/` (KB articles + workspace content)
+2. `_index.md` is regenerated with entries grouped by type and workspace
+3. `_backlinks.md` is regenerated with cross-zone references and explicit `_No inbound links._` orphan markers
 4. Appends entry to `wiki/_log.md`
 
-This is a non-destructive operation — it only reads content and rewrites the two index files.
+This is a non-destructive, fully deterministic operation — no LLM writes the two index files, so they cannot drift or silently drop entries.
 
 ## /lint
 
@@ -129,10 +132,26 @@ This is a non-destructive operation — it only reads content and rewrites the t
 
 Produces a report at `output/reports/lint-<date>.md` and appends a summary to `wiki/_log.md`. Runs 7 checks:
 
-1. **Frontmatter validation** — required fields, valid enums, type-specific fields (KB: full schema, workspaces: light schema)
-2. **Broken wikilinks** — every `[[link]]` must resolve to a real file within `wiki/`
-3. **Orphaned articles** — no inbound links
-4. **Contradictory claims** — conflicting facts across related KB articles
-5. **Stale content** — past decay rate threshold (KB articles only)
-6. **Missing concepts** — topics mentioned in 3+ articles without their own article
-7. **Duplicate detection** — same entity under different names
+1. **Deterministic validation** — runs `hooks/validate.sh --all` (full schema, enums, dates, tags vs domains, source paths, filenames, wikilinks); violations become Critical Issues
+2. **Orphaned articles** — collected from `_backlinks.md`'s explicit `_No inbound links._` markers
+3. **Contradictory claims** — conflicting facts across related KB articles
+4. **Stale content** — past decay rate threshold (KB articles only)
+5. **Missing concepts** — topics mentioned in 3+ articles without their own article
+6. **Duplicate detection** — same entity under different names
+7. **Source fidelity (sampled)** — re-reads cited raw sources for a sample of articles and flags claims not traceable to any cited source
+
+## /query
+
+**Answer questions from the wiki, with citations — and keep the good answers.**
+
+```
+/query <question>
+```
+
+What it does:
+1. Navigates progressively: `_index.md` → relevant articles (raw sources only as a last resort)
+2. Synthesizes an answer citing every article used with `[[wikilinks]]`
+3. If the answer is durable (multi-article synthesis, likely to recur), files it to `wiki/workspaces/<actor>/answers/` — validated and reindexed so it's browsable and backlinked in Obsidian
+4. Appends entry to `wiki/_log.md`
+
+Query answers never touch KB type directories or `raw/`: the KB stays a pure projection of `raw/`, and `/rebuild` can never destroy filed answers.

@@ -25,6 +25,10 @@ features:
 
 ## How It Works
 
+![Echo Wiki — end-to-end flow](/assets/echo-wiki-flow.png)
+
+*The full pipeline: sources → `/ingest` → `raw/` receipts → `/compile` → `wiki/` knowledge → used via Obsidian, `/query` (with workspace write-back), and agents — with the deterministic script rails underneath.*
+
 ```
   URLs / Files / PDFs
          |
