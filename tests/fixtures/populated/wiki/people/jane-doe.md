@@ -16,3 +16,5 @@ summary: "Fictional researcher used in fixtures."
 ---
 
 Jane writes about [[concepts/event-sourcing|Event Sourcing]].
+
+Evidence: raw/blogs/sample-post.md#Overview

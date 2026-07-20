@@ -15,7 +15,7 @@ Echo Wiki uses the [Agent Skills](https://agentskills.io) open standard, making 
 
 Each agent reads its instruction file (`CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`) which points to:
 - `_meta/wiki.config.yaml` for domain configuration
-- `.claude/skills/` for operation definitions (ingest, compile, rebuild, index, lint)
+- `.claude/skills/` for operation definitions (ingest, compile, rebuild, index, lint, query, context, maintain)
 - `_meta/schemas/frontmatter.yaml` for validation rules
 
 The skills themselves are markdown files with YAML frontmatter — human-readable and agent-executable.
@@ -34,8 +34,14 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard:
 │   └── SKILL.md    # name: rebuild
 ├── index/
 │   └── SKILL.md    # name: index
-└── lint/
-    └── SKILL.md    # name: lint
+├── lint/
+│   └── SKILL.md    # name: lint
+├── query/
+│   └── SKILL.md    # name: query
+├── context/
+│   └── SKILL.md    # name: context
+└── maintain/
+    └── SKILL.md    # name: maintain
 ```
 
 Each `SKILL.md` contains:

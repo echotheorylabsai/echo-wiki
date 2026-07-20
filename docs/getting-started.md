@@ -103,8 +103,8 @@ my-wiki/
 │   ├── _backlinks.md          # Cross-reference map
 │   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
-├── hooks/                     # pre-commit.sh, token-count.sh
-├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index)
+├── hooks/                     # validation, indexing, pre-commit, and rebuild transaction scripts
+├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index, query, context, maintain)
 ├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
@@ -114,6 +114,6 @@ my-wiki/
 ## What's Next?
 
 - [Configure your domains](/configuration) for your specific use case
-- [Learn about the skills](/skills) — ingest, compile, rebuild, lint, and index
+- [Learn about the skills](/skills) — ingest, compile, rebuild, lint, index, query, context, and maintain
 - [Set up validation](/validation) — pre-commit hooks and semantic linting
 - Create notes in `wiki/workspaces/my-notes/` and run `/index` to include them

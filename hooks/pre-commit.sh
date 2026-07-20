@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
 # Echo Wiki — Pre-commit Hook
-# Thin wrapper: all validation logic lives in hooks/validate.sh (full
-# frontmatter schema, enums, dates, tags, source paths, wikilinks).
+# Validates a materialized Git index so configuration and Markdown always come
+# from the same staged snapshot.
 # Install: ln -sf ../../hooks/pre-commit.sh .git/hooks/pre-commit
 # Escape: git commit --no-verify
 set -uo pipefail
 
 WIKI_ROOT="$(git rev-parse --show-toplevel)"
+STAGED_ROOT=$(mktemp -d)
+trap 'rm -rf "$STAGED_ROOT"' EXIT
 
-OUT="$("$WIKI_ROOT/hooks/validate.sh" --staged 2>&1)"
+if ! git checkout-index --all --prefix="$STAGED_ROOT/"; then
+    echo "Pre-commit validation failed: could not materialize the staged snapshot."
+    exit 1
+fi
+
+OUT="$(ECHO_WIKI_ROOT="$STAGED_ROOT" "$WIKI_ROOT/hooks/validate.sh" --all 2>&1)"
 RC=$?
 
 if [ "$RC" -ne 0 ]; then

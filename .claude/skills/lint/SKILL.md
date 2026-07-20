@@ -11,6 +11,8 @@ Validate the wiki for structural and semantic issues. Produce an actionable repo
 
 Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompts/structure-check.md`. If any required paths are missing, recreate them before proceeding.
 
+Before that structure check or any report/log write, run `./hooks/repository-roots.sh || stop`, then `ECHO_WIKI_WRITER_TOKEN="$(./hooks/rebuild-transaction.sh writer-acquire)" || stop`, then `export ECHO_WIKI_WRITER_TOKEN`. If either command reports a redirected root or active lock, stop without modifying files. Keep this token until every write and the activity-log append finish; run `./hooks/rebuild-transaction.sh writer-release`, then `unset ECHO_WIKI_WRITER_TOKEN`, on completion or after handling an error.
+
 ## Input
 
 - Optional scope: specific file path, domain tag, or `all` (default: all)

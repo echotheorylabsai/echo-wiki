@@ -11,6 +11,8 @@ Fetch content from URLs or local files and save as clean markdown in `raw/` with
 
 Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompts/structure-check.md`. If any required paths are missing, recreate them before proceeding.
 
+Before that structure check or any write, run `./hooks/repository-roots.sh || stop`, then `ECHO_WIKI_WRITER_TOKEN="$(./hooks/rebuild-transaction.sh writer-acquire)" || stop`, then `export ECHO_WIKI_WRITER_TOKEN`. If either command reports a redirected root or active lock, stop without modifying files. Keep this token until every write and the activity-log append finish; run `./hooks/rebuild-transaction.sh writer-release`, then `unset ECHO_WIKI_WRITER_TOKEN`, on completion or after handling an error.
+
 ## Input
 
 - One or more URLs, or local file paths (md, pdf, txt)
@@ -61,6 +63,7 @@ Choose the appropriate tool based on config and availability:
 - Convert to clean markdown
 - Remove navigation, ads, cookie banners, sidebar content, boilerplate
 - Preserve: headings, code blocks, lists, tables, images, blockquotes
+- If the cleaned body has no Markdown heading, add `## Content` before writing the new raw file. This guarantees a stable evidence anchor without changing an existing raw source.
 - For images found in the content:
   - Download each image to `raw/<category>/images/` with a descriptive filename
   - Update image references in the markdown to point to the local path
@@ -130,6 +133,7 @@ After successful ingestion, immediately run the compile operation on the newly i
 ## Important Rules
 
 - `raw/` is append-only — never modify existing files
+- Every newly ingested raw body must contain at least one visible Markdown heading for evidence locators
 - One raw file per source URL
 - Always check `_index.md` first to avoid ingesting the same source twice
 - If a source has already been ingested, inform the user and skip

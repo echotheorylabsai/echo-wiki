@@ -44,7 +44,7 @@ features:
          |
          v
   +--------------+
-  |  /rebuild    |  Wipe KB dirs, replay all sources (after deletion)
+  |  /rebuild    |  Stage + validate a replacement (after deletion)
   +--------------+
          |
          v

@@ -10,12 +10,14 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 - `/index` — Rescan `wiki/` and regenerate `_index.md` and `_backlinks.md`
 - `/lint [scope]` — Semantic validation, report to `output/reports/`
 - `/query <question>` — Answer from the wiki with cited wikilinks; file durable answers into the asking actor's workspace
+- `/context <product-area>` — Create a concise, evidence-backed context pack for a product area or component
+- `/maintain` — Refresh generated indexes and produce a safe, prioritized maintenance queue
 
 ## Rules
 
 1. **KB type directories are LLM-only.** Write to KB directories (defined by `entity_types` in `_meta/wiki.config.yaml` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) via `/compile` or `/rebuild` only. Never edit directly.
 2. **`raw/` is append-only during normal operation.** Do not modify or delete sources as part of `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`.
-3. **Workspaces are actor-managed.** `wiki/workspaces/<name>/` directories are owned by their creator (human or agent). Skills never modify another actor's workspace content (`/query` files answers into the invoking actor's own workspace).
+3. **Workspaces are actor-managed.** `wiki/workspaces/<name>/` directories are owned by their creator (human or agent). Skills never modify another actor's workspace content, except system-managed files under `wiki/workspaces/knowledge-maintenance/` written by `/context`, `/query`, or `/maintain`.
 4. **Frontmatter required** on all files. Schema: `_meta/schemas/frontmatter.yaml`. KB articles use full schema; workspace files use light schema.
 5. **Wikilinks** for all cross-references between articles: `[[concepts/name|Display Name]]`
 6. **Sources field** uses plain strings (not wikilinks): `sources: ["raw/blogs/foo.md"]`

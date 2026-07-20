@@ -11,6 +11,8 @@ Transform raw source documents into structured wiki articles in `wiki/`. Extract
 
 Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompts/structure-check.md`. If any required paths are missing, recreate them before proceeding.
 
+Before that structure check or any write, run `./hooks/repository-roots.sh || stop`, then `ECHO_WIKI_WRITER_TOKEN="$(./hooks/rebuild-transaction.sh writer-acquire)" || stop`, then `export ECHO_WIKI_WRITER_TOKEN`. If either command reports a redirected root or active lock, stop without modifying files. Keep this token until every write and the activity-log append finish; run `./hooks/rebuild-transaction.sh writer-release`, then `unset ECHO_WIKI_WRITER_TOKEN`, on completion or after handling an error.
+
 ## Input
 
 - Path to one or more raw source files, OR `all` for full recompile
@@ -20,13 +22,16 @@ Before starting, run Step 0: Verify Wiki Structure as described in `_meta/prompt
 
 1. Read `_meta/wiki.config.yaml` — domain context, defaults
 2. Read `_meta/schemas/frontmatter.yaml` — required fields and enums
-3. Read `wiki/_index.md` — existing wiki state (L0)
-4. Read target raw source(s) (L3)
-5. After identifying entities, read existing compiled articles that need merging (L2)
+3. Read `_meta/prompts/evidence-rules.md` — citation requirements for factual content
+4. Read `wiki/_index.md` — existing wiki state (L0)
+5. Read target raw source(s) (L3)
+6. After identifying entities, read existing compiled articles that need merging (L2)
 
 ## Steps
 
 ### Step 1: Read and Analyze Raw Source
+
+If a raw source has no visible Markdown heading, stop before writing KB content. Report the file path and ask the user to make a deliberate one-time migration by adding `## Content` before its body; `/compile` must not modify the append-only raw file itself.
 
 Read the raw source file(s). For each source, identify:
 - **Main topic/thesis** — what is this source about?
@@ -67,10 +72,16 @@ summary: "<One-line summary of the source>"
 - <Main takeaway 2>
 - <Main takeaway 3>
 
+Evidence: raw/<category>/<filename>.md#<exact heading supporting the key points>
+
 ## Details
 
 <Organized summary of the source content. Group by topic. Include specific details, data points, and notable quotes with attribution.>
+
+Evidence: raw/<category>/<filename>.md#<exact heading>
 ```
+
+Every factual Key Points list must be followed immediately by its supporting `Evidence:` line or lines. If different bullets depend on different headings, split them into separately evidenced lists rather than using one ambiguous locator.
 
 ### Step 3: Extract and Classify Entities
 
@@ -130,6 +141,7 @@ summary: "<One-line description>"
 <Article content. Organize into clear sections with ## headings.>
 <Use [[wikilinks]] to reference related articles.>
 <Include specific details, not just generic descriptions.>
+<Add Evidence: raw/<path>.md#<exact heading> after every factual paragraph.>
 ```
 
 For **people** (`wiki/people/<name>.md`):
@@ -152,6 +164,7 @@ summary: "<One-line description of who they are>"
 ---
 
 <Article content about the person's work, contributions, and views.>
+<Add Evidence: raw/<path>.md#<exact heading> after every factual paragraph.>
 ```
 
 For **tools** (`wiki/tools/<name>.md`):
@@ -174,6 +187,7 @@ summary: "<One-line description>"
 ---
 
 <Article content about what the tool does, key features, use cases.>
+<Add Evidence: raw/<path>.md#<exact heading> after every factual paragraph.>
 ```
 
 **If article ALREADY exists** — merge:
@@ -184,7 +198,8 @@ summary: "<One-line description>"
 4. Append the new raw file path (plain string, not wikilink) to the `sources:` array
 5. Add any new `related:` wikilinks
 6. Add any new `tags:` that apply
-7. **NEVER remove, overwrite, or contradict existing content.** If the new source contradicts existing content, note both views with attribution.
+7. Add an evidence locator after every factual paragraph added or updated in this run.
+8. **NEVER remove, overwrite, or contradict existing content.** If the new source contradicts existing content, note both views with attribution.
 
 ### Step 5: Add Wikilinks
 
@@ -243,4 +258,5 @@ Source summary: <source summary path>
 - **Use wikilinks** for all cross-references in body text and `related:` frontmatter. The `sources:` field uses plain string paths (not wikilinks).
 - **Tags must come from** `wiki.config.yaml` domains list.
 - **Fidelity:** every factual claim in a KB article must be traceable to a source in its `sources:` list. Do not import uncited outside knowledge into KB articles.
+- **Evidence locators:** follow `_meta/prompts/evidence-rules.md`. Every factual paragraph must be followed by an `Evidence:` line whose raw source and heading validate mechanically.
 - **Inferences are marked:** connective claims that go beyond the sources must be attributed in-text ("this suggests…") and reflected in the article's `confidence` field (`speculative` if inference-heavy).

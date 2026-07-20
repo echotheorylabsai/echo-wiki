@@ -24,6 +24,18 @@ summary: "One-line summary for index"
 
 **Note:** The `sources` field uses plain strings (raw file paths), not `[[wikilinks]]`. This is because `raw/` is outside the Obsidian vault.
 
+## Evidence Locators
+
+KB articles use visible evidence locators after factual paragraphs:
+
+```markdown
+The API issues short-lived access tokens.
+
+Evidence: raw/rfcs/authentication.md#Token Lifetime
+```
+
+Each locator must point to an existing raw Markdown file and an exact heading in that file. In KB articles, the raw file must also appear in the `sources:` list. Use `Inference:` for unsourced reasoning and `Open question:` for unresolved information. System context packs under `wiki/workspaces/knowledge-maintenance/context/` and generated actor files under `wiki/workspaces/<actor>/answers/` follow the same rule; ordinary workspace notes do not.
+
 ## Type-Specific Fields
 
 | Type | Extra Fields |

@@ -25,7 +25,7 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
          |
          v
   +--------------+
-  |  /rebuild    |  Wipe KB dirs, replay all sources (after deletion)
+  |  /rebuild    |  Stage + validate a replacement (after deletion)
   +--------------+
          |
          v
@@ -35,6 +35,8 @@ A generic, LLM-maintained knowledge base system. Ingest sources, compile a struc
 ```
 
 > `/rebuild` is only needed after manually deleting raw source files. Normal workflow is `/ingest` → `/compile`.
+
+Newly ingested sources always include a visible Markdown heading so compiled claims can cite a stable evidence location. See the validation guide for the one-time migration required by legacy headingless raw sources.
 
 **The LLM writes all wiki content.** You provide sources, the LLM maintains `wiki/`. You never edit KB articles directly — just read them in Obsidian. You can create your own notes and drafts in `wiki/workspaces/`.
 
@@ -129,11 +131,13 @@ See `.env.example` for required API keys.
 | `/ingest <path>` | Import local file (md, pdf) to `raw/` |
 | `/compile <path>` | Compile raw source into wiki articles |
 | `/compile all` | Recompile entire wiki |
-| `/rebuild` | Wipe KB dirs, recompile from all remaining raw sources |
+| `/rebuild` | Stage, validate, and commit a KB replacement from remaining raw sources |
 | `/index` | Rescan `wiki/` and update `_index.md` and `_backlinks.md` |
 | `/lint` | Run semantic checks, produce report |
 | `/lint all` | Lint entire wiki |
-| `/query <question>` | Answer from the wiki with citations; file durable answers to the actor's workspace |
+| `/query <question>` | Answer from the wiki with citations; file durable answers and capture unsupported questions as knowledge gaps |
+| `/context <product-area>` | Create or refresh a concise, evidence-backed context pack for a component or product area |
+| `/maintain` | Refresh indexes, write diagnostics and a prioritized queue, and append the activity log without changing factual knowledge |
 
 ## Workspaces
 
@@ -146,6 +150,9 @@ wiki/workspaces/
 │   └── todo.md
 ├── content-creator/       <- Agent workspace (created on demand)
 │   └── drafts/
+├── knowledge-maintenance/ <- System-managed context packs and knowledge gaps
+│   ├── context/
+│   └── gaps/
 └── social-media/          <- Agent workspace
     └── drafts/
 ```
@@ -155,6 +162,14 @@ wiki/workspaces/
 - **Cross-zone wikilinks** — workspace notes can link to KB articles and vice versa
 - **Rebuild-safe** — `/rebuild` never touches `workspaces/`
 - Run `/index` after creating workspace content to update the master index
+
+### Engineering Context Packs
+
+`/context <product-area>` creates a compact starting page for developers and coding agents. It summarizes the current architecture, constraints, decisions, open questions, and the articles to read next. Context packs are rebuild-safe derived content in `workspaces/knowledge-maintenance/context/`; factual paragraphs link to exact supporting locations in `raw/` rather than creating a second knowledge store.
+
+When `/query` cannot provide a fully evidence-backed answer, it records the question, search scope, missing evidence, and a suggested next source in `workspaces/knowledge-maintenance/gaps/`. Repeated unanswered questions update the same note, so the wiki's next improvements are driven by real developer and agent usage.
+
+`/maintain` is safe autopilot: it refreshes the generated index/backlinks files, writes the daily lint report and prioritized maintenance queue, and appends the activity log. It surfaces broken evidence, stale or contradictory articles, recurring knowledge gaps, and orphan/duplicate candidates, but never changes factual content by itself.
 
 ## Data Flow
 
@@ -186,8 +201,8 @@ wiki/workspaces/
                                                |
                     /rebuild                    |
                        |                       |
-    [delete raw] --> wipe KB dirs --> replay all sources chronologically
-                     (workspaces preserved)
+    [delete raw] --> stage KB --> replay sources --> validate --> replace live KB
+                     (workspaces preserved; failure leaves live KB unchanged)
 ```
 
 ## Validation
@@ -231,9 +246,9 @@ echo-wiki/
 │   ├── _backlinks.md          # Cross-reference map
 │   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
-├── hooks/                     # pre-commit.sh, validate.sh, reindex.sh, token-count.sh
+├── hooks/                     # validation, indexing, pre-commit, and rebuild transaction scripts
 ├── tests/                     # Fixture-based tests for the hooks (run-tests.sh)
-├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index, query)
+├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index, query, context, maintain)
 ├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions

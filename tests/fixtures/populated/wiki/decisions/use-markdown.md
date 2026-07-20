@@ -13,3 +13,5 @@ summary: "Decision to keep the substrate plain markdown."
 ---
 
 Markdown keeps [[concepts/event-sourcing|Event Sourcing]] projections human-legible.
+
+Evidence: raw/blogs/sample-post.md#Overview

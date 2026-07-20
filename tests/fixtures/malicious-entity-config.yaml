@@ -1,0 +1,12 @@
+domains:
+  - name: ai
+    description: Artificial intelligence
+
+entity_types:
+  - name: concept
+    dir: ../../../sentinel
+    label: Concepts
+    description: Ideas
+
+source_types:
+  - blog

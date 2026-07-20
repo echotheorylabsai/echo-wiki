@@ -16,3 +16,5 @@ summary: "Sources are the log; the wiki is a projection."
 
 Knowledge lives in an append-only log and is projected into articles.
 Browse the projection with [[tools/obsidian|Obsidian]].
+
+Evidence: raw/blogs/sample-post.md#Overview

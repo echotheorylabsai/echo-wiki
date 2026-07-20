@@ -20,6 +20,8 @@ For the default config, KB directories are: `wiki/concepts/`, `wiki/people/`, `w
 
 **Note:** `wiki/_log.md` is not required — it is created automatically by the first skill invocation. If present, it must be preserved (never deleted by any skill or rebuild).
 
+System-managed paths below `wiki/workspaces/knowledge-maintenance/` are created on demand by `/context`, `/query`, and `/maintain`; they are not required for the base structure check.
+
 ## Behavior
 
 For each required path:

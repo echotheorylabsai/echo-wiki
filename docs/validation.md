@@ -13,6 +13,8 @@ Enforces `_meta/schemas/frontmatter.yaml` mechanically:
 ./hooks/validate.sh <path>...    # explicit paths
 ```
 
+`validate.sh` uses Ruby's standard `YAML` parser for frontmatter syntax; Ruby is available by default on supported macOS setups and requires no gem installation.
+
 Zones are inferred from paths: KB articles (`wiki/<entity dir>/`) get the full schema, `raw/` files get the raw schema, `wiki/workspaces/` files get the light schema.
 
 | Check | KB | raw/ | workspace |
@@ -23,15 +25,23 @@ Zones are inferred from paths: KB articles (`wiki/<entity dir>/`) get the full s
 | `decay_rate`, `confidence` enums | ✓ | — | — |
 | Dates are `YYYY-MM-DD` | ✓ | ✓ | ✓ |
 | `tags` values exist in config domains | ✓ | ✓ | — |
-| `sources` non-empty and every path exists on disk | ✓ | — | — |
+| `sources` non-empty; every path exists and remains inside `raw/` | ✓ | — | — |
 | `source_type` / `ingestion_tool` enums | — | ✓ | — |
+| At least one visible, citable Markdown heading | — | ✓ | — |
 | Type-specific fields (built-in types) | ✓ | — | — |
 | Filename kebab-case, ≤ 60 chars | ✓ | ✓ | — |
 | Every `[[wikilink]]` resolves within `wiki/` | ✓ | — | ✓ |
+| At least one valid `Evidence:` locator | ✓ | — | System context packs and generated `answers/` |
 
 Custom entity types (beyond concept/person/tool/source-summary) are validated against the shared KB schema only — add entries to `kb_type_specific` in `_meta/schemas/frontmatter.yaml` and extend the script if you want stricter checks.
 
-A structure guard always runs first: `wiki/`, `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/workspaces/`, and every configured KB type directory must exist.
+A structure guard always runs first: `_meta/`, `raw/`, and `wiki/` must be real directories directly beneath the repository root; `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/workspaces/`, and every configured KB type directory must also exist.
+
+An evidence locator has the form `Evidence: raw/<path>.md#<exact heading>`. Validation confirms that the raw file remains inside `raw/`, appears in the KB article's `sources:` list, and has that heading in rendered Markdown content. Frontmatter, fenced code, HTML comments, and raw HTML blocks cannot satisfy evidence checks. KB articles, system context packs, and generated actor `answers/` require locators; the script verifies their shape and targets without attempting to infer whether prose is factual.
+
+### Upgrading an Existing Wiki
+
+Evidence validation intentionally tightens the schema for existing content. Run `./hooks/validate.sh --all`; for each legacy raw source reported as headingless, make a deliberate one-time migration by adding `## Content` before its body. Then run `/rebuild` so KB articles are regenerated with evidence locators. Normal `/ingest` and `/compile` operations continue treating existing raw files as append-only.
 
 ## reindex.sh — Deterministic Index & Backlinks
 

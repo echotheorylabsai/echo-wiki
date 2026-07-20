@@ -20,3 +20,5 @@ summary: "Summary of the sample fixture post."
 
 - [[concepts/event-sourcing|Event Sourcing]] explained by [[people/jane-doe|Jane Doe]]
 - Uses [[tools/obsidian|Obsidian]] and records [[decisions/use-markdown|Use Markdown]]
+
+Evidence: raw/blogs/sample-post.md#Overview

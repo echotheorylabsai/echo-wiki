@@ -11,11 +11,13 @@ Skill definitions in `.claude/skills/`:
 - `index` — Rescan `wiki/` and regenerate `_index.md` and `_backlinks.md`
 - `lint` — Semantic validation, report to `output/reports/`
 - `query` — Answer from the wiki with cited wikilinks; file durable answers into the asking actor's workspace
+- `context` — Create a concise, evidence-backed context pack for a product area or component
+- `maintain` — Refresh generated indexes and produce a safe, prioritized maintenance queue
 
 ## Key Rules
 
 - KB type directories (defined by `entity_types` in `_meta/wiki.config.yaml` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) are LLM-maintained only — never edit manually
-- `wiki/workspaces/` is for actor-created content (human or agent) — skills never modify another actor's workspace content (`/query` files answers into the invoking actor's own workspace)
+- `wiki/workspaces/` is for actor-created content (human or agent) — skills never modify another actor's workspace content, except the system-managed `knowledge-maintenance/` workspace used by `/context`, `/query`, and `/maintain`
 - `raw/` is append-only during normal operation — do not modify or delete via `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`
 - All files require YAML frontmatter (see `_meta/schemas/frontmatter.yaml`)
 - Run `./hooks/validate.sh` on written files (skills specify when); run `./hooks/reindex.sh` instead of hand-writing `_index.md`/`_backlinks.md`

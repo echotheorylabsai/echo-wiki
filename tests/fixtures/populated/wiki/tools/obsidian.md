@@ -16,3 +16,5 @@ summary: "Markdown vault browser used as the human UI."
 ---
 
 Obsidian renders the projection described in [[concepts/event-sourcing|Event Sourcing]].
+
+Evidence: raw/blogs/sample-post.md#Overview

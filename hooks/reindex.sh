@@ -6,8 +6,8 @@
 #
 # Usage: ./hooks/reindex.sh
 #   Root resolution: $ECHO_WIKI_ROOT if set, else `git rev-parse --show-toplevel`.
-#   Reads entity_types (name/dir/label) from _meta/wiki.config.yaml; falls back
-#   to the four built-in defaults if the config is missing or unparsable.
+#   Reads entity_types (name/dir/label) from _meta/wiki.config.yaml; an empty
+#   entity_types list uses the four built-in defaults.
 #
 # Output formats (this script is the format spec):
 #   _index.md      — "# Wiki Index", one "## <label>" section per configured
@@ -28,11 +28,34 @@ WIKI_ROOT="${ECHO_WIKI_ROOT:-$(git rev-parse --show-toplevel)}"
 CONFIG="$WIKI_ROOT/_meta/wiki.config.yaml"
 WIKI_DIR="$WIKI_ROOT/wiki"
 TAB="$(printf '\t')"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOCK_HELPER="$SCRIPT_DIR/rebuild-transaction.sh"
+OWNED_WRITER_LOCK=0
 
-if [ ! -d "$WIKI_DIR" ]; then
-    echo "ERROR: $WIKI_DIR does not exist" >&2
-    exit 1
-fi
+acquire_write_lock() {
+    local owner token
+    if [ -d "$WIKI_ROOT/.rebuild-lock" ]; then
+        owner=$(cat "$WIKI_ROOT/.rebuild-lock/owner" 2>/dev/null || true)
+        case "$owner" in
+            writer:*) token="${owner#writer:}"; [ "${ECHO_WIKI_WRITER_TOKEN:-}" = "$token" ] ;;
+            rebuild:*) token="${owner#rebuild:}"; [ "${ECHO_WIKI_REBUILD_TOKEN:-}" = "$token" ] ;;
+            *) false ;;
+        esac || { echo "ERROR: a different writer or rebuild owns the lock" >&2; return 1; }
+    else
+        ECHO_WIKI_WRITER_TOKEN="$(ECHO_WIKI_ROOT="$WIKI_ROOT" "$LOCK_HELPER" writer-acquire)" || return 1
+        export ECHO_WIKI_WRITER_TOKEN
+        OWNED_WRITER_LOCK=1
+    fi
+}
+
+release_write_lock() {
+    [ "$OWNED_WRITER_LOCK" -eq 1 ] || return 0
+    ECHO_WIKI_ROOT="$WIKI_ROOT" "$LOCK_HELPER" writer-release >/dev/null || true
+}
+
+"$SCRIPT_DIR/repository-roots.sh"
+acquire_write_lock
+trap 'release_write_lock' EXIT
 
 TMP_TYPES=$(mktemp)
 TMP_RECORDS=$(mktemp)
@@ -41,23 +64,17 @@ TMP_PAIRS=$(mktemp)
 TMP_INDEX=$(mktemp)
 TMP_BL=$(mktemp)
 TMP_ORPHANS=$(mktemp)
-trap 'rm -f "$TMP_TYPES" "$TMP_RECORDS" "$TMP_PATHS" "$TMP_PAIRS" "$TMP_INDEX" "$TMP_BL" "$TMP_ORPHANS"' EXIT
+trap 'rm -f "$TMP_TYPES" "$TMP_RECORDS" "$TMP_PATHS" "$TMP_PAIRS" "$TMP_INDEX" "$TMP_BL" "$TMP_ORPHANS"; release_write_lock' EXIT
 
 # --- Entity types: "name<TAB>dir<TAB>label" per line, config order ---
 
 extract_entity_types() {
-    awk '
-      /^entity_types:/ { in_block=1; next }
-      /^[^ ]/ && in_block { in_block=0 }
-      in_block && /- name:/ {
-        if (name != "") print name "\t" dir "\t" label
-        sub(/.*- name:[[:space:]]*/, ""); sub(/[[:space:]]*$/, ""); gsub(/^"|"$/, "")
-        name=$0; dir=""; label=""
-        next
-      }
-      in_block && /^[[:space:]]+dir:/   { sub(/.*dir:[[:space:]]*/, "");   sub(/[[:space:]]*$/, ""); gsub(/^"|"$/, ""); dir=$0;   next }
-      in_block && /^[[:space:]]+label:/ { sub(/.*label:[[:space:]]*/, ""); sub(/[[:space:]]*$/, ""); gsub(/^"|"$/, ""); label=$0; next }
-      END { if (name != "") print name "\t" dir "\t" label }
+    ruby -rdate -ryaml -e '
+      config=YAML.safe_load(File.read(ARGV[0]), permitted_classes: [Date], aliases: false)
+      Array(config["entity_types"]).each do |entry|
+        next unless entry.is_a?(Hash)
+        puts [entry["name"], entry["dir"], entry["label"]].map { |value| value.to_s.gsub("\t", " ") }.join("\t")
+      end
     ' "$CONFIG" 2>/dev/null || true
 }
 
@@ -70,13 +87,13 @@ fi
 # --- Scan wiki/: records are "zone<TAB>group<TAB>path<TAB>title<TAB>summary" ---
 
 fm_title_summary() { # file -> "title<TAB>summary"
-    awk '
-      BEGIN { c=0; t=""; s="" }
-      /^---$/ { c++; if (c==2) exit; next }
-      c==1 && /^title:/   && t=="" { sub(/^title:[[:space:]]*/, "");   gsub(/^"|"$/, ""); t=$0 }
-      c==1 && /^summary:/ && s=="" { sub(/^summary:[[:space:]]*/, ""); gsub(/^"|"$/, ""); s=$0 }
-      END { print t "\t" s }
-    ' "$1"
+    awk 'BEGIN{c=0}/^---$/{c++;next}c==1{print}c==2{exit}' "$1" |
+        ruby -rdate -ryaml -e '
+          data=YAML.safe_load(STDIN.read, permitted_classes: [Date], aliases: false)
+          abort "frontmatter must be a mapping" unless data.is_a?(Hash)
+          values=[data["title"], data["summary"]].map { |value| value.nil? ? "" : value.to_s.gsub(/[\t\r\n]/, " ") }
+          puts values.join("\t")
+        '
 }
 
 is_kb_dir() { # dir-name -> 0 if configured
