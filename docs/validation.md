@@ -74,6 +74,8 @@ Run on-demand via `/lint`. Requires an LLM agent. Produces detailed reports in `
 
 The deterministic layer (check 1) is delegated to `validate.sh`; the LLM handles orphan triage, contradictions, staleness, missing entities, duplicates, and sampled source fidelity. See [Skills → /lint](/skills#lint) for the full list of 7 checks.
 
+For the routine, non-destructive maintenance loop, run `/maintain`. It refreshes indexes, the lint report, and the maintenance queue when you invoke it; it is not a background scheduler and does not rewrite factual KB content. See [Keeping Content Fresh](/keeping-fresh).
+
 ## Tests
 
 The scripts are covered by fixture-based tests:

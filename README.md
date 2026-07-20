@@ -139,6 +139,10 @@ See `.env.example` for required API keys.
 | `/context <product-area>` | Create or refresh a concise, evidence-backed context pack for a component or product area |
 | `/maintain` | Refresh indexes, write diagnostics and a prioritized queue, and append the activity log without changing factual knowledge |
 
+## Keeping Content Fresh
+
+Echo Wiki is command-driven, not a background synchronizer. New sources flow through `/ingest` → `/compile`, while context packs, durable answers, knowledge gaps, and the maintenance queue refresh only when you run `/context`, `/query`, or `/maintain` again. For the complete change-to-next-step guide—including manual raw imports, source deletion, and the current same-URL replacement limitation—see [Keeping Content Fresh](https://echotheorylabsai.github.io/echo-wiki/keeping-fresh).
+
 ## Workspaces
 
 Users and agents can create content alongside KB articles in `wiki/workspaces/`:
@@ -169,7 +173,7 @@ wiki/workspaces/
 
 When `/query` cannot provide a fully evidence-backed answer, it records the question, search scope, missing evidence, and a suggested next source in `workspaces/knowledge-maintenance/gaps/`. Repeated unanswered questions update the same note, so the wiki's next improvements are driven by real developer and agent usage.
 
-`/maintain` is safe autopilot: it refreshes the generated index/backlinks files, writes the daily lint report and prioritized maintenance queue, and appends the activity log. It surfaces broken evidence, stale or contradictory articles, recurring knowledge gaps, and orphan/duplicate candidates, but never changes factual content by itself.
+`/maintain` is safe, manual maintenance: it refreshes the generated index/backlinks files, writes the lint report and prioritized maintenance queue, and appends the activity log when you run it. It surfaces broken evidence, stale or contradictory articles, recurring knowledge gaps, and orphan/duplicate candidates, but never changes factual content by itself.
 
 ## Data Flow
 

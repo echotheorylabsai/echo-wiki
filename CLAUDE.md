@@ -6,7 +6,7 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 - `/ingest <url-or-path>` — Fetch source content, save to `raw/`
 - `/compile <path|all>` — Compile raw sources into wiki articles in `wiki/`
-- `/rebuild` — Wipe KB type directories and recompile from all remaining raw sources
+- `/rebuild` — Stage, validate, and replace the KB projection from all remaining raw sources
 - `/index` — Rescan `wiki/` and regenerate `_index.md` and `_backlinks.md`
 - `/lint [scope]` — Semantic validation, report to `output/reports/`
 - `/query <question>` — Answer from the wiki with cited wikilinks; file durable answers into the asking actor's workspace

@@ -6,6 +6,10 @@ All skills run a structure check (Step 0) before starting. If any required wiki 
 
 All skills append an entry to `wiki/_log.md` after completing — a chronological, parseable record of every operation. The log is auto-created on first use and preserved across rebuilds.
 
+## Keeping Content Fresh
+
+Echo Wiki is command-driven, not a background synchronizer. `/ingest` updates the KB pipeline for a new source, but context packs, durable answers, knowledge gaps, and the maintenance queue are derived artifacts that refresh only when their respective skills run. See [Keeping Content Fresh](/keeping-fresh) for the change-to-next-step guide, including the deliberate workflow for replacing a source.
+
 ## /ingest
 
 **Fetch and clean source content into `raw/`.**

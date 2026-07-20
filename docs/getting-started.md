@@ -115,5 +115,6 @@ my-wiki/
 
 - [Configure your domains](/configuration) for your specific use case
 - [Learn about the skills](/skills) — ingest, compile, rebuild, lint, index, query, context, and maintain
+- [Keep content fresh](/keeping-fresh) when sources, workspaces, or derived context change
 - [Set up validation](/validation) — pre-commit hooks and semantic linting
 - Create notes in `wiki/workspaces/my-notes/` and run `/index` to include them

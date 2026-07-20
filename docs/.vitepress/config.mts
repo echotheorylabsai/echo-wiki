@@ -26,6 +26,7 @@ export default defineConfig({
         items: [
           { text: 'Configuration', link: '/configuration' },
           { text: 'Skills', link: '/skills' },
+          { text: 'Keeping Content Fresh', link: '/keeping-fresh' },
           { text: 'Validation & Linting', link: '/validation' },
           { text: 'Obsidian Integration', link: '/obsidian' },
         ]
