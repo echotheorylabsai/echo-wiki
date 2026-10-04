@@ -8,6 +8,8 @@ require 'find'
 class OnboardingTest < Minitest::Test
   ROOT = File.expand_path('..', __dir__)
   SCRIPT = File.join(ROOT, '.claude/skills/onboard/scripts/bootstrap.rb')
+  LINKER = File.join(ROOT, '.claude/skills/onboard/scripts/link-codex-skills.rb')
+  SKILLS = %w[onboard ingest compile rebuild index lint query context maintain].freeze
 
   def setup
     @tmp = Dir.mktmpdir('echo-onboarding-')
@@ -45,6 +47,7 @@ class OnboardingTest < Minitest::Test
     assert_equal before, snapshot
     out, success = run_bootstrap
     assert success, out
+    assert_codex_links
     assert File.file?(File.join(@target, '.claude/skills/onboard/SKILL.md'))
     assert File.executable?(File.join(@target, 'hooks/validate.sh'))
     output, status = Open3.capture2e({'ECHO_WIKI_ROOT' => @target}, File.join(@target, 'hooks/validate.sh'), '--all')
@@ -61,7 +64,8 @@ class OnboardingTest < Minitest::Test
       'GEMINI.md' => 'Our Gemini rules', '.gitignore' => '/private/',
       '.env.example' => 'COMPANY_TOKEN=',
       'hooks/custom.sh' => '# custom', '.git/hooks/pre-commit' => '# company hook',
-      '.claude/skills/company/SKILL.md' => 'Existing company skill'
+      '.claude/skills/company/SKILL.md' => 'Existing company skill',
+      '.agents/skills/company/SKILL.md' => 'Existing Codex skill'
     }
     files.each { |path, text| write(path, text) }
     system('git', '-C', @target, 'remote', 'add', 'origin', 'https://example.invalid/company.git')
@@ -194,4 +198,109 @@ class OnboardingTest < Minitest::Test
       refute File.exist?(File.join(@target, path)), path
     end
   end
+  def assert_codex_links(root = @target)
+    SKILLS.each do |name|
+      link = File.join(root, '.agents/skills', name)
+      assert File.symlink?(link), "Missing Codex skill link: #{name}"
+      assert_equal "../../.claude/skills/#{name}", File.readlink(link)
+      assert_equal File.realpath(File.join(root, '.claude/skills', name)), File.realpath(link)
+    end
+  end
+
+  def test_upstream_clone_includes_shared_codex_skills
+    assert_codex_links(ROOT)
+  end
+
+  def test_existing_instance_repairs_links_without_changing_content
+    out, success = run_bootstrap
+    assert success, out
+    FileUtils.remove_entry(File.join(@target, '.agents'))
+    write('AGENTS.md', 'Customer rules')
+    write('raw/blogs/customer.md', 'Existing evidence')
+    write('.agents/skills/company/SKILL.md', 'Existing Codex skill')
+    before = snapshot
+    out, success = run_bootstrap('--check')
+    assert success, out
+    assert_includes out, 'LINK .agents/skills/query'
+    assert_equal before, snapshot
+    out, success = run_bootstrap
+    assert success, out
+    assert_codex_links
+    assert_equal before, snapshot.reject { |path, _| SKILLS.any? { |name| path == "/.agents/skills/#{name}" } }
+  end
+
+  def test_codex_conflicts_are_preflighted_for_fresh_and_existing_instances
+    [false, true].each do |installed|
+      if installed
+        out, success = run_bootstrap
+        assert success, out
+        File.unlink(File.join(@target, '.agents/skills/query'))
+        File.unlink(File.join(@target, '.agents/skills/onboard'))
+      end
+      write('.agents/skills/query/SKILL.md', 'Customer query skill')
+      before = snapshot
+      out, success = run_bootstrap
+      refute success, out
+      assert_includes out, 'BLOCKED:'
+      assert_includes out, '.agents/skills/query'
+      assert_equal before, snapshot
+      FileUtils.remove_entry(File.join(@target, '.agents/skills/query'))
+    end
+  end
+
+  def test_codex_parent_symlink_is_rejected
+    outside = File.join(@tmp, 'outside')
+    FileUtils.mkdir_p(outside)
+    File.symlink(outside, File.join(@target, '.agents'))
+    before = snapshot
+    out, success = run_bootstrap
+    refute success, out
+    assert_includes out, 'BLOCKED:'
+    assert_equal before, snapshot
+    assert_empty Dir.children(outside)
+  end
+
+  def test_standalone_linker_supports_older_instances_and_is_idempotent
+    out, success = run_bootstrap
+    assert success, out
+    FileUtils.remove_entry(File.join(@target, '.agents'))
+    File.unlink(File.join(@target, '.claude/skills/onboard/scripts/link-codex-skills.rb'))
+    before = snapshot
+    out, success = run_bootstrap('--check', @target, LINKER)
+    assert success, out
+    assert_equal before, snapshot
+    out, success = run_bootstrap('--apply', @target, LINKER)
+    assert success, out
+    assert_codex_links
+    linked = snapshot
+    out, success = run_bootstrap('--apply', @target, LINKER)
+    assert success, out
+    assert_equal linked, snapshot
+    File.unlink(File.join(@target, '.agents/skills/query'))
+    File.symlink('../../wrong', File.join(@target, '.agents/skills/query'))
+    before = snapshot
+    out, success = run_bootstrap('--apply', @target, LINKER)
+    refute success, out
+    assert_includes out, '.agents/skills/query'
+    assert_equal before, snapshot
+  end
+
+  def test_standalone_linker_rejects_missing_source_and_active_writer
+    out, success = run_bootstrap
+    assert success, out
+    FileUtils.remove_entry(File.join(@target, '.agents'))
+    write('.rebuild-lock/owner', 'writer:other')
+    before = snapshot
+    out, success = run_bootstrap('--apply', @target, LINKER)
+    refute success, out
+    assert_equal before, snapshot
+    FileUtils.remove_entry(File.join(@target, '.rebuild-lock'))
+    File.unlink(File.join(@target, '.claude/skills/query/SKILL.md'))
+    before = snapshot
+    out, success = run_bootstrap('--apply', @target, LINKER)
+    refute success, out
+    assert_includes out, '.claude/skills/query'
+    assert_equal before, snapshot
+  end
+
 end

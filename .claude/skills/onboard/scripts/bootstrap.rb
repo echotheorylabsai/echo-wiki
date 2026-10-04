@@ -5,11 +5,12 @@ require 'tmpdir'
 require 'open3'
 require 'yaml'
 require 'date'
+require_relative 'link-codex-skills'
 
 SOURCE = File.expand_path('../../../..', __dir__)
 MARKER = '_meta/echo-wiki-instance.yaml'
 PRESERVE = %w[AGENTS.md CLAUDE.md GEMINI.md .gitignore .env.example].freeze
-SKILLS = %w[onboard ingest compile rebuild index lint query context maintain].freeze
+SKILLS = CodexSkills::NAMES
 EMPTY_DIRS = %w[raw/blogs/images raw/papers/images raw/people/images raw/substacks/images
                 raw/github/images raw/media/images wiki/concepts wiki/people wiki/tools
                 wiki/sources wiki/workspaces/my-notes output/reports].freeze
@@ -73,12 +74,18 @@ if exists?(File.join(target, MARKER))
     safe_path!(target, relative)
     stop "Instance is missing #{relative}; restore the runtime file before resuming. Do not reinstall over existing knowledge." unless File.file?(File.join(target, relative))
   end
-  puts 'Already initialized. Nothing changed or upgraded; continue configuration and verification in the onboard skill.'
+  missing = CodexSkills.plan(target)
+  missing.each { |name| puts "LINK .agents/skills/#{name} -> ../../.claude/skills/#{name}" }
+  CodexSkills.with_writer(target) { CodexSkills.apply(target) } if mode == '--apply' && !missing.empty?
+  puts "Already initialized. #{mode == '--check' ? 'Preview only; no files changed.' : 'Codex links ready; runtime and knowledge preserved.'} Continue verification in the onboard skill."
   exit
 end
 %w[_meta raw wiki].each do |path|
   stop "#{path} already exists. Preserve it; choose a separate repository or agree an explicit migration before retrying." if exists?(File.join(target, path))
 end
+
+missing = CodexSkills.plan(target, source_root: SOURCE)
+missing.each { |name| puts "LINK .agents/skills/#{name} -> ../../.claude/skills/#{name}" }
 
 # An allowlist excludes source receipts, compiled knowledge, secrets and development workflows.
 files = %w[_meta/wiki.config.yaml _meta/schemas/frontmatter.yaml]
@@ -128,7 +135,9 @@ Dir.mktmpdir('echo-wiki-scaffold-') do |stage|
   token = run!(File.join(SOURCE, 'hooks/rebuild-transaction.sh'), 'writer-acquire', env: {'ECHO_WIKI_ROOT' => target}).strip
   begin
     # The completion marker is last; an interrupted partial install must be inspected.
+    CodexSkills.plan(target, source_root: SOURCE)
     (outputs - [MARKER] + [MARKER]).each do |relative|
+      CodexSkills.apply(target) if relative == MARKER
       safe_path!(target, relative)
       path = File.join(target, relative)
       next if PRESERVE.include?(relative) && File.file?(path)
