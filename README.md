@@ -73,7 +73,9 @@ Onboard /path/to/existing-repo. Keep its artifacts in place,
 preserve its instructions and hooks, and propose one initial import.
 ```
 
-If the skill is already discoverable, use `/onboard <destination>`. Otherwise, explicitly reading its file works without assuming a particular agent's slash-command support. The agent needs Git, Bash and Ruby; local Markdown ingestion does not require API keys.
+If the skill is already discoverable, use `/onboard <destination>` in Claude Code, or select `onboard` in Codex’s skill picker (`$onboard` where supported). Otherwise, explicitly reading its file works without assuming a particular agent's slash-command support. The agent needs Git, Bash and Ruby; local Markdown ingestion does not require API keys.
+
+Onboarding automatically adds relative `.agents/skills/` links for Codex, sharing the canonical `.claude/skills/` definitions. Existing instances can add missing links with the [link repair command](https://echotheorylabsai.github.io/echo-wiki/getting-started#enable-codex-in-an-existing-instance). Conflicting skill names are preserved and reported before any installation writes.
 
 Existing `wiki/`, `raw/`, or `_meta/` collisions require a decision before installation. Onboarding does not automatically relocate documents, synchronize cloud sources, or upgrade existing instances.
 
@@ -251,6 +253,7 @@ echo-wiki/
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # validation, indexing, pre-commit, and rebuild transaction scripts
 ├── tests/                     # Fixture-based tests for the hooks (run-tests.sh)
+├── .agents/skills/            # Codex links to the canonical skills below
 ├── .claude/skills/            # Agent Skills (onboard, ingest, compile, rebuild, lint, index, query, context, maintain)
 ├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
@@ -263,7 +266,7 @@ echo-wiki/
 Echo Wiki uses the [Agent Skills](https://agentskills.io) open standard. Works with:
 
 - **Claude Code** — via CLAUDE.md + .claude/skills/
-- **Codex CLI** — via AGENTS.md + .claude/skills/
+- **Codex** — via AGENTS.md + .agents/skills/ links to .claude/skills/
 - **Gemini CLI** — via GEMINI.md + .claude/skills/
 - **Any Agent Skills-compatible agent**
 

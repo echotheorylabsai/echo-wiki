@@ -5,7 +5,7 @@ Use the `onboard` skill with your coding agent. It separates fresh repositories 
 ## Prerequisites
 
 - A coding agent with local file and command access
-- Git, Bash and Ruby (standard YAML library; no gems required)
+- Git, Bash, Ruby (standard YAML library; no gems required), and filesystem symlink support
 - Optional: Obsidian for browsing the resulting `wiki/` folder
 - Source extraction tools only when needed: begin with local Markdown; URL/PDF/media extraction depends on your agent's available tools
 
@@ -66,7 +66,20 @@ ruby /tmp/echo-wiki-onboarding/.claude/skills/onboard/scripts/bootstrap.rb --che
 ruby /tmp/echo-wiki-onboarding/.claude/skills/onboard/scripts/bootstrap.rb --apply /absolute/path/to/company-kb
 ```
 
-`--check` leaves the destination unchanged. `--apply` installs only the runtime scaffold; it does not configure your domains, merge existing instruction/ignore files, install Git hooks, or import sources. Continue with the skill to finish those steps. Rerunning against a recognized instance preserves it; this is not an upgrade tool. Interrupted partial installs need inspection before retrying.
+`--check` leaves the destination unchanged. `--apply` installs the runtime scaffold and Codex skill links; it does not configure your domains, merge existing instruction/ignore files, install Git hooks, or import sources. Continue with the skill to finish those steps. Rerunning against a recognized instance preserves its runtime and knowledge, adding only missing Codex links; this is not an upgrade tool. Interrupted partial installs need inspection before retrying.
+
+## Enable Codex in an Existing Instance
+
+Keep `.claude/skills/` as the single source of skill definitions. Codex discovers those same skills through per-skill relative links in `.agents/skills/`. A fresh upstream clone includes these links, and new onboarding creates them automatically.
+
+For an older instance, use a current upstream checkout outside the destination:
+
+```bash
+ruby /tmp/echo-wiki-onboarding/.claude/skills/onboard/scripts/link-codex-skills.rb --check /absolute/path/to/company-kb
+ruby /tmp/echo-wiki-onboarding/.claude/skills/onboard/scripts/link-codex-skills.rb --apply /absolute/path/to/company-kb
+```
+
+The helper adds missing links only. It preserves custom Codex skills and existing Echo definitions, and stops before writing if a required skill name conflicts or a parent directory is symlinked. Do not copy skill definitions or rerun ingestion. Verify the nine skills in Codex's skill picker/list from the destination; restart the session if needed. A valid link alone does not prove the running agent has discovered it.
 
 ## Verify and Start Using It
 
@@ -78,7 +91,7 @@ The agent should report setup validation, instruction/hook integration, and firs
 /context your-product-area
 ```
 
-Use commands only when your agent recognizes them; otherwise ask it to read and follow the corresponding `.claude/skills/<name>/SKILL.md`. Review the cited source and commit the resulting changes when satisfied. Open **`wiki/`** in Obsidian to browse.
+These examples use Claude Code syntax. In Codex, select the skill in its picker or use `$ingest`, `$query`, and `$context` where supported. Use commands only when your agent recognizes them; otherwise ask it to read and follow the corresponding `.claude/skills/<name>/SKILL.md`. Review the cited source and commit the resulting changes when satisfied. Open **`wiki/`** in Obsidian to browse.
 
 Multiple agents can draft in separate workspaces; use one integration writer at a time. Rerun `/context` or `/query` when their saved outputs need refreshing, and `/maintain` for a manual health review. See [Keeping Content Fresh](/keeping-fresh) for source replacement limits.
 
@@ -105,6 +118,7 @@ my-wiki/
 │   └── _log.md                # Activity log (auto-created by skills)
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # validation, indexing, pre-commit, and rebuild transaction scripts
+├── .agents/skills/            # Codex links to the canonical skills below
 ├── .claude/skills/            # Agent Skills (onboard, ingest, compile, rebuild, lint, index, query, context, maintain)
 ├── .env.example               # API key template
 ├── AGENTS.md                  # Agent instructions (merged when present)
