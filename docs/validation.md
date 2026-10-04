@@ -55,18 +55,20 @@ Skills call this script; neither humans nor LLMs ever hand-write the two index f
 
 ## Pre-commit Hook
 
-A thin wrapper around `validate.sh --staged`. Blocks commits containing schema violations.
+Validates the complete staged snapshot with `validate.sh --all`. Blocks commits containing schema violations.
 
-**Install:**
+**Install in an ordinary clone with no existing hook or custom `core.hooksPath`:**
 ```bash
-ln -sf ../../hooks/pre-commit.sh .git/hooks/pre-commit
+ln -s ../../hooks/pre-commit.sh .git/hooks/pre-commit
 ```
+
+For existing hooks, hook managers or linked worktrees, use `/onboard` to inspect integration first; do not overwrite shared hooks.
 
 **Escape hatch:** `git commit --no-verify` for WIP commits.
 
 ## Skill Self-Healing
 
-Every skill runs a structure check (Step 0) before any work. If a required path is missing, the skill recreates it silently. This means you can always recover by running any skill — even if you accidentally deleted a directory.
+Wiki operations include a structure-check step for missing generated paths. Onboarding creates the initial layout separately. Existing path conflicts and active writer/rebuild locks require resolution before proceeding.
 
 ## Semantic Lint
 
@@ -78,13 +80,16 @@ For the routine, non-destructive maintenance loop, run `/maintain`. It refreshes
 
 ## Tests
 
-The scripts are covered by fixture-based tests:
+Run these fixture-based tests from the upstream Echo Wiki checkout (development tests are not copied into customer instances):
 
 ```bash
 bash tests/run-tests.sh
+ruby tests/onboarding-test.rb
 ```
 
 Golden-file assertions for `reindex.sh` (populated + empty wikis), one fixture per validation error class for `validate.sh`, and a git-integration test that installs the pre-commit hook in a throwaway repo.
+
+The onboarding suite checks preview/apply behavior, artifact and Git visibility preservation, path collisions, safe reruns, and exclusion of source knowledge/secrets.
 
 ## Token Count
 
@@ -94,9 +99,9 @@ Track wiki size over time:
 ./hooks/token-count.sh    # Run manually
 ```
 
-**Install as post-commit hook (informational, never blocks):**
+**Install as post-commit hook only when absent and using the ordinary clone hook path (informational):**
 ```bash
-ln -sf ../../hooks/token-count.sh .git/hooks/post-commit
+ln -s ../../hooks/token-count.sh .git/hooks/post-commit
 ```
 
 Sample output:

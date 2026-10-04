@@ -15,7 +15,7 @@ Echo Wiki uses the [Agent Skills](https://agentskills.io) open standard, making 
 
 Each agent reads its instruction file (`CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`) which points to:
 - `_meta/wiki.config.yaml` for domain configuration
-- `.claude/skills/` for operation definitions (ingest, compile, rebuild, index, lint, query, context, maintain)
+- `.claude/skills/` for operation definitions (onboard, ingest, compile, rebuild, index, lint, query, context, maintain)
 - `_meta/schemas/frontmatter.yaml` for validation rules
 
 The skills themselves are markdown files with YAML frontmatter — human-readable and agent-executable.
@@ -26,6 +26,10 @@ Skills follow the [Agent Skills](https://agentskills.io) open standard:
 
 ```
 .claude/skills/
+├── onboard/
+│   ├── SKILL.md
+│   ├── scripts/
+│   └── references/
 ├── ingest/
 │   └── SKILL.md    # name: ingest
 ├── compile/
@@ -48,3 +52,7 @@ Each `SKILL.md` contains:
 - YAML frontmatter with `name` and `description`
 - Step-by-step markdown instructions the agent follows
 - References to schemas and config files
+
+## First-time Onboarding
+
+An agent does not need automatic skill discovery to bootstrap a repository. Give it the absolute path to a complete Echo Wiki checkout's `.claude/skills/onboard/SKILL.md` and the destination repository. See [Getting Started](/getting-started) for fresh and existing-repository examples. Verify each agent's instruction loading and command support; the skill does not install or authenticate an agent.

@@ -4,6 +4,7 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 ## Skills
 
+- `/onboard <destination>` — Set up a fresh or existing repository; preserve artifacts and escalate conflicts
 - `/ingest <url-or-path>` — Fetch source content, save to `raw/`
 - `/compile <path|all>` — Compile raw sources into wiki articles in `wiki/`
 - `/rebuild` — Stage, validate, and replace the KB projection from all remaining raw sources
@@ -15,16 +16,18 @@ LLM-maintained knowledge base. Read `_meta/wiki.config.yaml` for wiki configurat
 
 ## Rules
 
+These rules govern Echo Wiki content under `raw/` and `wiki/`; they do not impose a format on the repository's application code or original artifacts.
+
 1. **KB type directories are LLM-only.** Write to KB directories (defined by `entity_types` in `_meta/wiki.config.yaml` — default: `wiki/concepts/`, `wiki/people/`, `wiki/tools/`, `wiki/sources/`) via `/compile` or `/rebuild` only. Never edit directly.
 2. **`raw/` is append-only during normal operation.** Do not modify or delete sources as part of `/ingest` or `/compile`. To remove a source, delete the raw file manually, then run `/rebuild`.
 3. **Workspaces are actor-managed.** `wiki/workspaces/<name>/` directories are owned by their creator (human or agent). Skills never modify another actor's workspace content, except system-managed files under `wiki/workspaces/knowledge-maintenance/` written by `/context`, `/query`, or `/maintain`.
-4. **Frontmatter required** on all files. Schema: `_meta/schemas/frontmatter.yaml`. KB articles use full schema; workspace files use light schema.
+4. **Frontmatter required** on managed Markdown files; generated indexes and the activity log are exempt. Schema: `_meta/schemas/frontmatter.yaml`. KB articles use full schema; workspace files use light schema.
 5. **Wikilinks** for all cross-references between articles: `[[concepts/name|Display Name]]`
 6. **Sources field** uses plain strings (not wikilinks): `sources: ["raw/blogs/foo.md"]`
 7. **Tags** must match domains defined in `_meta/wiki.config.yaml`
-8. **Filenames** are kebab-case, max 60 characters, `.md` extension.
+8. **Knowledge article/source filenames** are kebab-case, max 60 characters, `.md` extension.
 
-## Progressive Context Loading
+## Progressive Context Loading for Wiki Tasks
 
 Load incrementally — never load the entire wiki at once:
 
@@ -41,7 +44,7 @@ Use `/query` for questions the wiki should answer — it navigates progressively
 
 ## Validation
 
-- **`./hooks/validate.sh [--all|--staged|<paths>]`** — deterministic schema enforcement (required fields, enums, dates, tags vs domains, source-path existence, filenames, wikilinks). The pre-commit hook runs it on staged files automatically.
+- **`./hooks/validate.sh [--all|--staged|<paths>]`** — deterministic schema enforcement (required fields, enums, dates, tags vs domains, source-path existence, filenames, wikilinks). When installed, the supplied pre-commit hook validates the staged snapshot automatically; otherwise run validation manually.
 - **`./hooks/reindex.sh`** — deterministically regenerates `_index.md` and `_backlinks.md`. Skills call it; never hand-write those two files.
 - **`/lint`** for semantic checks (contradictions, staleness, duplicates, orphans, source fidelity)
 - **`./hooks/token-count.sh`** to check wiki size anytime

@@ -57,29 +57,27 @@ raw/                          wiki/ (Obsidian vault)
                                   └── my-notes/    <- Your notes
 ```
 
-## Quick Start
+## Onboard Your Repository
 
-```bash
-# 1. Clone
-git clone <repo-url> my-wiki && cd my-wiki
+Give your coding agent a complete Echo Wiki checkout and the absolute path to your destination Git repository. The `/onboard` skill has separate paths for **fresh repositories** and **repositories with existing artifacts**. It previews setup, preserves existing files, and reports conflicts with concrete next steps.
 
-# 2. Set up environment
-cp .env.example .env
-# Edit .env — add your API keys
+```text
+# Fresh repository
+Read /path/to/echo-wiki/.claude/skills/onboard/SKILL.md and follow it.
+Set up /path/to/company-kb as "Company Knowledge" with company,
+product, engineering, marketing, and research domains.
 
-# 3. Configure your domain
-# Edit _meta/wiki.config.yaml — set name, description, domains
-
-# 4. Install hooks
-ln -sf ../../hooks/pre-commit.sh .git/hooks/pre-commit
-ln -sf ../../hooks/token-count.sh .git/hooks/post-commit
-
-# 5. Open in Obsidian
-# File > Open folder as vault > select the wiki/ directory
-
-# 6. Ingest your first source
-/ingest https://example.com/article
+# Repository with existing documents
+Read /path/to/echo-wiki/.claude/skills/onboard/SKILL.md and follow it.
+Onboard /path/to/existing-repo. Keep its artifacts in place,
+preserve its instructions and hooks, and propose one initial import.
 ```
+
+If the skill is already discoverable, use `/onboard <destination>`. Otherwise, explicitly reading its file works without assuming a particular agent's slash-command support. The agent needs Git, Bash and Ruby; local Markdown ingestion does not require API keys.
+
+Existing `wiki/`, `raw/`, or `_meta/` collisions require a decision before installation. Onboarding does not automatically relocate documents, synchronize cloud sources, or upgrade existing instances.
+
+See [Getting Started](https://echotheorylabsai.github.io/echo-wiki/getting-started) for bootstrap commands, examples, and verification.
 
 ## Configuration
 
@@ -127,6 +125,7 @@ See `.env.example` for required API keys.
 
 | Command | What it does |
 |---|---|
+| `/onboard <destination>` | Set up a fresh or existing repository with preview and verification |
 | `/ingest <url>` | Fetch URL, save clean markdown to `raw/` |
 | `/ingest <path>` | Import local file (md, pdf) to `raw/` |
 | `/compile <path>` | Compile raw source into wiki articles |
@@ -214,7 +213,7 @@ When `/query` cannot provide a fully evidence-backed answer, it records the ques
 **Deterministic scripts (no LLM):**
 - `./hooks/validate.sh [--all|--staged|<paths>]` — full frontmatter schema (required fields, enums, dates, tags vs domains), source-path existence, filename rules, wikilink resolution, structure integrity
 - `./hooks/reindex.sh` — regenerates `_index.md` and `_backlinks.md` deterministically; skills never hand-write them
-- **Pre-commit hook** runs `validate.sh --staged` automatically on every commit
+- **Pre-commit hook**, when installed, validates the complete staged snapshot before each commit
 
 **Semantic lint (`/lint`, on-demand, LLM):**
 - Contradictory claims across articles
@@ -252,7 +251,7 @@ echo-wiki/
 ├── output/reports/            # Lint reports, query results, token counts
 ├── hooks/                     # validation, indexing, pre-commit, and rebuild transaction scripts
 ├── tests/                     # Fixture-based tests for the hooks (run-tests.sh)
-├── .claude/skills/            # Agent Skills (ingest, compile, rebuild, lint, index, query, context, maintain)
+├── .claude/skills/            # Agent Skills (onboard, ingest, compile, rebuild, lint, index, query, context, maintain)
 ├── docs/                      # VitePress documentation site
 ├── .env.example               # API key template
 ├── CLAUDE.md                  # Claude Code instructions
