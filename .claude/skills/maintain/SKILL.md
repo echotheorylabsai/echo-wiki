@@ -30,7 +30,7 @@ Run `./hooks/validate.sh --all`. Capture every violation, but do not edit the of
 
 ### Step 3: Run Semantic Lint
 
-Read `.claude/skills/lint/SKILL.md` and execute `/lint all`. Read the generated report at `output/reports/lint-<today YYYY-MM-DD>.md`.
+Read `.claude/skills/lint/SKILL.md` and perform its Context Loading, seven Checks, and Report Output steps with scope `all` inside this maintenance operation. Structure is already verified and `/maintain` owns the writer lock: skip lint’s Prerequisites, do not invoke `/lint` as a separate skill, and do not acquire or release another lock. Keep the existing token until maintenance finishes. Read the generated report at `output/reports/lint-<today YYYY-MM-DD>.md`.
 
 ### Step 4: Read Knowledge Gaps
 
