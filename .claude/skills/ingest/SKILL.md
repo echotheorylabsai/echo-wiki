@@ -128,7 +128,7 @@ Ingestion tool: <tavily|firecrawl|local>
 
 ### Step 6: Proceed to Compile
 
-After successful ingestion, immediately run the compile operation on the newly ingested source(s). Read `.claude/skills/compile/SKILL.md` and follow its instructions.
+After the raw validation and activity-log append, release the ingest writer lock with `./hooks/rebuild-transaction.sh writer-release`, then `unset ECHO_WIKI_WRITER_TOKEN`. Immediately run the compile operation on the newly ingested source(s). Read `.claude/skills/compile/SKILL.md` and follow its instructions; compile acquires its own writer lock. Do not nest two writer acquisitions or release the ingest token a second time.
 
 ## Important Rules
 

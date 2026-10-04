@@ -2,9 +2,21 @@
 
 Echo Wiki uses [Agent Skills](https://agentskills.io) to manage the wiki pipeline. Skills are stored in `.claude/skills/` and work with any compatible agent.
 
-All skills run a structure check (Step 0) before starting. If any required wiki paths are missing, the skill recreates them automatically. See `_meta/prompts/structure-check.md` for details.
+After onboarding, wiki operations run a structure check (Step 0) before starting. If any required wiki paths are missing, the skill recreates them automatically. See `_meta/prompts/structure-check.md` for details.
 
-All skills append an entry to `wiki/_log.md` after completing — a chronological, parseable record of every operation. The log is auto-created on first use and preserved across rebuilds.
+Wiki operations append an entry to `wiki/_log.md` after completing — a chronological, parseable record of every operation. The log is auto-created on first use and preserved across rebuilds.
+
+## /onboard
+
+**Initialize a fresh or existing Git repository without relocating its artifacts.**
+
+```text
+/onboard /absolute/path/to/company-kb
+```
+
+The skill inspects the repository and loads the relevant fresh/existing guide. A script previews and installs the standard runtime; the agent handles configuration, instruction/hook integration and one selected source. Conflicts produce actionable next steps. Reruns preserve existing instances; no automatic upgrade, commit or push occurs.
+
+For first-time use before the skill is installed, follow the explicit skill-file examples in [Getting Started](/getting-started).
 
 ## Keeping Content Fresh
 

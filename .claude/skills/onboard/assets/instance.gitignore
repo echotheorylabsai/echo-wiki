@@ -1,0 +1,15 @@
+# Local credentials
+/.env
+
+# Echo Wiki local UI state
+/wiki/.obsidian/workspace.json
+/wiki/.obsidian/workspace-mobile.json
+/wiki/.obsidian/core-plugins.json
+/wiki/.obsidian/community-plugins.json
+/wiki/.obsidian/hotkeys.json
+/wiki/.obsidian/plugins/
+
+# Echo Wiki transient state and informational logs
+/.rebuild-lock/
+/.rebuild-state/
+/output/reports/token-count.log
