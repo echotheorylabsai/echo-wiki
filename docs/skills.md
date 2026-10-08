@@ -50,9 +50,9 @@ What it does:
 | `twitter.com/*`, `x.com/*` | tweet | `raw/people/` |
 | `arxiv.org/*`, `*.pdf` | paper | `raw/papers/` |
 | Other URLs | blog | `raw/blogs/` |
-| Local `.md` / `.txt` written by your team | internal | `raw/internal/` |
+| Local `.md` / `.txt` authored by your team | internal | `raw/internal/` |
 | Podcasts / videos | — | User must specify type |
-| Company-authored PDF or URL | internal (override) | `raw/internal/` |
+| Team-authored PDF or URL | internal (override) | `raw/internal/` |
 
 ## /compile
 
@@ -60,7 +60,7 @@ What it does:
 
 ```
 /compile raw/<category>/article.md   # Compile a specific source
-/compile all                      # Recompile entire wiki
+/compile all                         # Recompile entire wiki
 ```
 
 What it does:

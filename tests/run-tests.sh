@@ -160,47 +160,83 @@ test_ingest_heading_contract() {
 test_source_type_consistency() {
     local out
     out="$(cd "$REPO" && ruby -Eutf-8 -rdate -ryaml -e '
-      cfg = YAML.safe_load(File.read("_meta/wiki.config.yaml"), permitted_classes: [Date], aliases: false)
+      load_yaml = lambda { |path| YAML.safe_load(File.read(path), permitted_classes: [Date], aliases: false) }
+      cfg = load_yaml.call("_meta/wiki.config.yaml")
       types = Array(cfg["source_types"]).map(&:to_s)
-      schema = File.read("_meta/schemas/frontmatter.yaml")
-      enums = schema.scan(/source_type:\s*(?:enum:\s*)?\[([^\]]+)\]/).map { |m| m[0].split(",").map(&:strip) }
-      validator = File.read("hooks/validate.sh").scan(/"([a-z|]+\|video)"/).map { |m| m[0].split("|") }
-      ingest = File.read(".claude/skills/ingest/SKILL.md")
-      map = ingest[/Map `source_type` to directory:(.*?)\*\*Filename/m, 1].to_s
-      folders = map.scan(/^\|\s*(\w+)\s*\|\s*`raw\/([a-z]+)\/`\s*\|/).to_h
-      scaffold = File.read(".claude/skills/onboard/scripts/bootstrap.rb").scan(%r{raw/([a-z]+)/images}).flatten
       problems = []
       problems << "config has no internal type" unless types.include?("internal")
-      problems << "schema enum lists found: #{enums.length}, expected 3" unless enums.length == 3
-      enums.each { |e| problems << "schema enum #{e.inspect} != config #{types.inspect}" unless e.sort == types.sort }
-      validator.each { |v| problems << "validate.sh fallback #{v.inspect} != config" unless v.sort == types.sort }
-      problems << "validate.sh fallback strings found: #{validator.length}, expected 2" unless validator.length == 2
-      types.each { |t| problems << "ingest has no folder row for #{t}" unless folders.key?(t) }
-      folders.each { |t, f| problems << "ingest maps unknown type #{t}" unless types.include?(t); problems << "bootstrap does not scaffold raw/#{f}/images" unless scaffold.include?(f) }
+      same = lambda do |label, list|
+        problems << "#{label} #{list.inspect} != config #{types.inspect}" unless list.is_a?(Array) && list.map(&:to_s).sort == types.sort
+      end
+
+      schema = load_yaml.call("_meta/schemas/frontmatter.yaml")
+      same.call("schema source-summary enum", schema.dig("kb_type_specific", "source-summary", "source_type", "enum"))
+      same.call("schema raw enum", schema.dig("raw", "required_fields", "source_type", "enum"))
+      same.call("schema enums.source_type", schema.dig("enums", "source_type"))
+
+      validator = File.read("hooks/validate.sh")[/extract_source_types\(\) \{.*?\n\}/m].to_s
+      problems << "validate.sh extract_source_types function not found" if validator.empty?
+      fallbacks = validator.scan(/values\.empty\? \? "([^"]+)"/).flatten + validator.scan(/\|\| echo "([^"]+)"/).flatten
+      problems << "validate.sh fallback lists found: #{fallbacks.length}, expected 2" unless fallbacks.length == 2
+      fallbacks.each { |f| same.call("validate.sh fallback", f.split("|")) }
+
+      ingest = File.read(".claude/skills/ingest/SKILL.md")
+      table = ingest[/Map `source_type` to directory:(.*?)\*\*Filename/m, 1]
+      folders = {}
+      if table.nil?
+        problems << "ingest type-to-folder table not found"
+      else
+        folders = table.scan(/^\|\s*`?(\w+)`?\s*\|\s*`raw\/([a-z]+)\/`\s*\|/).to_h
+        types.each { |t| problems << "ingest has no folder row for #{t}" unless folders.key?(t) }
+        folders.each_key { |t| problems << "ingest maps unknown type #{t}" unless types.include?(t) }
+      end
+
+      boot = File.read(".claude/skills/onboard/scripts/bootstrap.rb")[/EMPTY_DIRS\s*=\s*%w\[(.*?)\]/m, 1]
+      if boot.nil?
+        problems << "bootstrap EMPTY_DIRS list not found"
+      else
+        scaffold = boot.scan(%r{raw/([a-z]+)/images}).flatten
+        folders.each_value { |f| problems << "bootstrap does not scaffold raw/#{f}/images" unless scaffold.include?(f) }
+      end
+
+      conf_doc = File.read("docs/configuration.md")[/^source_types:.*?\n\n/m].to_s.scan(/^\s*- (\w+)/).flatten
+      same.call("docs/configuration.md source_types", conf_doc)
+      schema_doc = File.read("docs/schema.md")[/^source_type: (.+)$/, 1].to_s.split("|").map(&:strip)
+      same.call("docs/schema.md source_type", schema_doc)
+
       puts problems.empty? ? "CONSISTENT" : problems.join("; ")
     ' 2>&1)"
     if [ "$out" = "CONSISTENT" ]; then
-        ok "source types: config, schema, validator, ingest and bootstrap agree"
+        ok "source types: config, schema, validator, ingest, bootstrap and docs agree"
     else
-        not_ok "source types: config, schema, validator, ingest and bootstrap agree" "$out"
+        not_ok "source types: config, schema, validator, ingest, bootstrap and docs agree" "$out"
     fi
 }
 
-# The shipped config must accept the internal type for raw and source-summary files and reject unknown types.
+# The shipped config must accept the internal type for raw files and source summaries and reject unknown types.
 test_validate_internal_source_type() {
     new_fixture empty
     cp "$REPO/_meta/wiki.config.yaml" "$FX/_meta/wiki.config.yaml"
     mkdir -p "$FX/raw/internal"
-    local doc="$FX/raw/internal/company-spec.md"
-    printf -- '---\ntitle: "Company Spec"\nsource_url: "local"\nsource_type: internal\nsource_date: 2026-07-01\nauthor: "Team"\ningested: 2026-07-02\ningestion_tool: local\ntags: [%s]\n---\n\n## Overview\n\nBody.\n' "$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0])["domains"][0]["name"]' "$FX/_meta/wiki.config.yaml")" > "$doc"
-    run_validate "$FX" raw/internal/company-spec.md
-    if [ "$VRC" -eq 0 ]; then ok "validate: raw/internal file with source_type internal passes"; else not_ok "validate: raw/internal file with source_type internal passes" "$VOUT"; fi
-    sed 's/^source_type: internal$/source_type: engineering/' "$doc" > "$doc.tmp" && mv "$doc.tmp" "$doc"
-    run_validate "$FX" raw/internal/company-spec.md
-    if [ "$VRC" -ne 0 ]; then
-        assert_contains "$VOUT" "invalid source_type 'engineering' (expected: internal|blog|" "validate: unknown source_type is rejected and internal is listed"
+    local domain doc summary
+    domain="$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0])["domains"][0]["name"]' "$FX/_meta/wiki.config.yaml")"
+    doc="$FX/raw/internal/company-spec.md"
+    summary="$FX/wiki/sources/company-spec.md"
+    printf -- '---\ntitle: "Company Spec"\nsource_url: "local"\nsource_type: internal\nsource_date: 2026-07-01\nauthor: "Team"\ningested: 2026-07-02\ningestion_tool: local\ntags: [%s]\n---\n\n## Overview\n\nBody.\n' "$domain" > "$doc"
+    printf -- '---\ntitle: "Company Spec"\ntype: source-summary\ncreated: 2026-07-02\nlast_updated: 2026-07-02\nlast_verified: 2026-07-02\ndecay_rate: medium\nconfidence: medium\ntags: [%s]\nsource_url: "local"\nsource_type: internal\nauthor: "Team"\nsource_date: 2026-07-01\nsources: ["raw/internal/company-spec.md"]\nrelated: []\nsummary: "Summary of the company spec."\n---\n\n## Key Points\n\n- The spec is internal.\n\nEvidence: raw/internal/company-spec.md#Overview\n' "$domain" > "$summary"
+    run_validate "$FX" raw/internal/company-spec.md wiki/sources/company-spec.md
+    if [ "$VRC" -eq 0 ]; then ok "validate: internal raw file and its source summary pass"; else not_ok "validate: internal raw file and its source summary pass" "$VOUT"; fi
+    local f
+    for f in "$doc" "$summary"; do
+        sed 's/^source_type: internal$/source_type: engineering/' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    done
+    run_validate "$FX" raw/internal/company-spec.md wiki/sources/company-spec.md
+    if [ "$VRC" -ne 0 ] \
+        && [ "$(printf '%s\n' "$VOUT" | grep -c "invalid source_type 'engineering'")" -eq 2 ] \
+        && printf '%s\n' "$VOUT" | grep -Eq "expected: ([a-z]+\|)*internal(\|[a-z]+)*\)"; then
+        ok "validate: unknown source_type is rejected for raw and summary, and internal is an allowed type"
     else
-        not_ok "validate: unknown source_type is rejected and internal is listed" "expected non-zero exit; out=$VOUT"
+        not_ok "validate: unknown source_type is rejected for raw and summary, and internal is an allowed type" "rc=$VRC out=$VOUT"
     fi
 }
 

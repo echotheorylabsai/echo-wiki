@@ -43,6 +43,8 @@ An evidence locator has the form `Evidence: raw/<path>.md#<exact heading>`. Vali
 
 Evidence validation intentionally tightens the schema for existing content. Run `./hooks/validate.sh --all`; for each legacy raw source reported as headingless, make a deliberate one-time migration by adding `## Content` before its body. Then run `/rebuild` so KB articles are regenerated with evidence locators. Normal `/ingest` and `/compile` operations continue treating existing raw files as append-only.
 
+Instances created before the `internal` source type existed keep working unchanged. To file team-authored documents as `internal`, add `- internal` to `source_types` in `_meta/wiki.config.yaml`, add `internal` to the three `source_type` lists in `_meta/schemas/frontmatter.yaml`, and create `raw/internal/images/`. Until the config lists it, `/ingest` stops and asks rather than writing an `internal` file.
+
 ## reindex.sh — Deterministic Index & Backlinks
 
 ```bash
