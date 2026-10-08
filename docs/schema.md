@@ -16,7 +16,7 @@ last_verified: 2026-04-04
 decay_rate: fast | medium | slow
 confidence: high | medium | speculative
 tags: ["domain-1", "domain-2"]
-sources: ["raw/blogs/source.md"]
+sources: ["raw/internal/source.md"]
 related: ["[[concepts/related]]"]
 summary: "One-line summary for index"
 ---
@@ -70,7 +70,7 @@ Files in `raw/` use a simpler schema:
 ---
 title: "Source Title"
 source_url: "https://..."
-source_type: blog | paper | tweet | substack | github | podcast | video
+source_type: internal | blog | paper | tweet | substack | github | podcast | video
 source_date: 2026-04-01
 author: "Author Name"
 ingested: 2026-04-04

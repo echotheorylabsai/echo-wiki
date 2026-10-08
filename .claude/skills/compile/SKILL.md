@@ -16,7 +16,7 @@ Before that structure check or any write, run `./hooks/repository-roots.sh || st
 ## Input
 
 - Path to one or more raw source files, OR `all` for full recompile
-- Examples: `/compile raw/blogs/some-article.md`, `/compile all`
+- Examples: `/compile raw/<category>/some-article.md`, `/compile all`
 
 ## Context Loading
 

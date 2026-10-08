@@ -38,7 +38,7 @@ kb_type_specific:
   source-summary:
     source_url: url
     source_type:
-      enum: [blog, paper, tweet, substack, github, podcast, video]
+      enum: [internal, blog, paper, tweet, substack, github, podcast, video]
     author: string
     source_date: date
   # Custom entity types (added via wiki.config.yaml entity_types):
@@ -51,7 +51,7 @@ raw:
     title: string
     source_url: url
     source_type:
-      enum: [blog, paper, tweet, substack, github, podcast, video]
+      enum: [internal, blog, paper, tweet, substack, github, podcast, video]
     source_date: date
     author: string
     ingested: date
@@ -74,7 +74,7 @@ enums:
   type: "wiki.config.yaml#entity_types[].name"  # Config-driven
   decay_rate: [fast, medium, slow]
   confidence: [high, medium, speculative]
-  source_type: [blog, paper, tweet, substack, github, podcast, video]
+  source_type: [internal, blog, paper, tweet, substack, github, podcast, video]
   tool_category: [framework, platform, service, product]
   ingestion_tool: [tavily, firecrawl, local]
 

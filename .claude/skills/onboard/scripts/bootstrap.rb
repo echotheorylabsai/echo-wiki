@@ -11,7 +11,7 @@ SOURCE = File.expand_path('../../../..', __dir__)
 MARKER = '_meta/echo-wiki-instance.yaml'
 PRESERVE = %w[AGENTS.md CLAUDE.md GEMINI.md .gitignore .env.example].freeze
 SKILLS = CodexSkills::NAMES
-EMPTY_DIRS = %w[raw/blogs/images raw/papers/images raw/people/images raw/substacks/images
+EMPTY_DIRS = %w[raw/internal/images raw/blogs/images raw/papers/images raw/people/images raw/substacks/images
                 raw/github/images raw/media/images wiki/concepts wiki/people wiki/tools
                 wiki/sources wiki/workspaces/my-notes output/reports].freeze
 

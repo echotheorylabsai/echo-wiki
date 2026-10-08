@@ -23,7 +23,7 @@ These rules govern Echo Wiki content under `raw/` and `wiki/`; they do not impos
 3. **Workspaces are actor-managed.** `wiki/workspaces/<name>/` directories are owned by their creator (human or agent). Skills never modify another actor's workspace content, except system-managed files under `wiki/workspaces/knowledge-maintenance/` written by `/context`, `/query`, or `/maintain`.
 4. **Frontmatter required** on managed Markdown files; generated indexes and the activity log are exempt. Schema: `_meta/schemas/frontmatter.yaml`. KB articles use full schema; workspace files use light schema.
 5. **Wikilinks** for all cross-references between articles: `[[concepts/name|Display Name]]`
-6. **Sources field** uses plain strings (not wikilinks): `sources: ["raw/blogs/foo.md"]`
+6. **Sources field** uses plain strings (not wikilinks): `sources: ["raw/internal/foo.md"]`
 7. **Tags** must match domains defined in `_meta/wiki.config.yaml`
 8. **Knowledge article/source filenames** are kebab-case, max 60 characters, `.md` extension.
 

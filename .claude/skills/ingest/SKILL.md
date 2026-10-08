@@ -16,7 +16,7 @@ Before that structure check or any write, run `./hooks/repository-roots.sh || st
 ## Input
 
 - One or more URLs, or local file paths (md, pdf, txt)
-- Optional: `source_type` override (required for podcast/video URLs, since those can't be auto-detected)
+- Optional: `source_type` override (required for podcast/video URLs, since those can't be auto-detected; also use it to file a team-authored PDF or URL as `internal`)
 
 ## Context Loading
 
@@ -36,8 +36,10 @@ Auto-detect from URL or file:
 | `twitter.com/*` or `x.com/*` | tweet |
 | `arxiv.org/*` or file ends `.pdf` | paper |
 | Other URLs | blog |
-| Local `.md` or `.txt` files | detect from content or default to blog |
+| Local `.md` or `.txt` files | `internal` when authored by the wiki's owner or team (specs, plans, memos, meeting notes); a saved copy of third-party content keeps its original type (article → blog, paper → paper); if authorship is unclear, ask the user |
 | Podcasts / videos | **User must specify explicitly** |
+
+Before writing anything, confirm the chosen `source_type` is listed under `source_types` in `_meta/wiki.config.yaml`. If it is not (for example an older config that predates `internal`), stop and ask the user to add it or to pick a listed type. Never relabel a file's `source_type` just to make validation pass; the type must match the folder the file is written to.
 
 ### Step 2: Fetch Content
 
@@ -74,6 +76,7 @@ Map `source_type` to directory:
 
 | source_type | directory |
 |---|---|
+| internal | `raw/internal/` |
 | blog | `raw/blogs/` |
 | paper | `raw/papers/` |
 | tweet | `raw/people/` |
@@ -114,7 +117,7 @@ Field rules:
 
 ### Step 5b: Validate Raw File
 
-Run `./hooks/validate.sh raw/<category>/<filename>.md`. If violations are reported, fix the raw file's frontmatter and re-run until it prints `OK` before proceeding.
+Run `./hooks/validate.sh raw/<category>/<filename>.md`. If violations are reported, fix the raw file's frontmatter and re-run until it prints `OK` before proceeding. Do not resolve an invalid `source_type` by relabeling the file; apply the `source_types` check from Step 1 instead.
 
 ### Step 5c: Append to Activity Log
 

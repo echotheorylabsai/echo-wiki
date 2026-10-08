@@ -33,6 +33,7 @@ entity_types:                         # KB article types and directories
     description: "Summaries of ingested raw sources"
 
 source_types:                         # Allowed source types
+  - internal
   - blog
   - paper
   - tweet
