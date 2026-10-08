@@ -35,6 +35,7 @@ entity_types:
     description: "Summaries of ingested raw sources"
 
 source_types:
+  - internal
   - blog
   - paper
   - tweet

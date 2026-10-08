@@ -50,6 +50,7 @@ class OnboardingTest < Minitest::Test
     assert_codex_links
     assert File.file?(File.join(@target, '.claude/skills/onboard/SKILL.md'))
     assert File.executable?(File.join(@target, 'hooks/validate.sh'))
+    assert File.directory?(File.join(@target, 'raw/internal/images')), 'scaffold must include raw/internal/images'
     output, status = Open3.capture2e({'ECHO_WIKI_ROOT' => @target}, File.join(@target, 'hooks/validate.sh'), '--all')
     assert status.success?, output
     refute File.exist?(File.join(@target, '.github'))

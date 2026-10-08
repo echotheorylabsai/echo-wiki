@@ -48,8 +48,8 @@ raw/                          wiki/ (Obsidian vault)
 ├── people/                   ├── concepts/        <- Default entity types
 ├── substacks/                │   └── topic.md
 ├── github/                   ├── people/          <- (configurable via
-└── media/                    │   └── person.md
-                              ├── tools/           <-  entity_types in config)
+├── internal/                 │   └── person.md
+└── media/                    ├── tools/           <-  entity_types in config)
                               │   └── tool.md
                               ├── sources/         <- Source summaries
                               │   └── summary.md

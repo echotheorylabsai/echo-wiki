@@ -155,6 +155,55 @@ test_ingest_heading_contract() {
     fi
 }
 
+# Every place that lists source types must agree, and each type needs a folder
+# (ingest mapping) plus a scaffolded images/ directory (onboarding bootstrap).
+test_source_type_consistency() {
+    local out
+    out="$(cd "$REPO" && ruby -Eutf-8 -rdate -ryaml -e '
+      cfg = YAML.safe_load(File.read("_meta/wiki.config.yaml"), permitted_classes: [Date], aliases: false)
+      types = Array(cfg["source_types"]).map(&:to_s)
+      schema = File.read("_meta/schemas/frontmatter.yaml")
+      enums = schema.scan(/source_type:\s*(?:enum:\s*)?\[([^\]]+)\]/).map { |m| m[0].split(",").map(&:strip) }
+      validator = File.read("hooks/validate.sh").scan(/"([a-z|]+\|video)"/).map { |m| m[0].split("|") }
+      ingest = File.read(".claude/skills/ingest/SKILL.md")
+      map = ingest[/Map `source_type` to directory:(.*?)\*\*Filename/m, 1].to_s
+      folders = map.scan(/^\|\s*(\w+)\s*\|\s*`raw\/([a-z]+)\/`\s*\|/).to_h
+      scaffold = File.read(".claude/skills/onboard/scripts/bootstrap.rb").scan(%r{raw/([a-z]+)/images}).flatten
+      problems = []
+      problems << "config has no internal type" unless types.include?("internal")
+      problems << "schema enum lists found: #{enums.length}, expected 3" unless enums.length == 3
+      enums.each { |e| problems << "schema enum #{e.inspect} != config #{types.inspect}" unless e.sort == types.sort }
+      validator.each { |v| problems << "validate.sh fallback #{v.inspect} != config" unless v.sort == types.sort }
+      problems << "validate.sh fallback strings found: #{validator.length}, expected 2" unless validator.length == 2
+      types.each { |t| problems << "ingest has no folder row for #{t}" unless folders.key?(t) }
+      folders.each { |t, f| problems << "ingest maps unknown type #{t}" unless types.include?(t); problems << "bootstrap does not scaffold raw/#{f}/images" unless scaffold.include?(f) }
+      puts problems.empty? ? "CONSISTENT" : problems.join("; ")
+    ' 2>&1)"
+    if [ "$out" = "CONSISTENT" ]; then
+        ok "source types: config, schema, validator, ingest and bootstrap agree"
+    else
+        not_ok "source types: config, schema, validator, ingest and bootstrap agree" "$out"
+    fi
+}
+
+# The shipped config must accept the internal type for raw and source-summary files and reject unknown types.
+test_validate_internal_source_type() {
+    new_fixture empty
+    cp "$REPO/_meta/wiki.config.yaml" "$FX/_meta/wiki.config.yaml"
+    mkdir -p "$FX/raw/internal"
+    local doc="$FX/raw/internal/company-spec.md"
+    printf -- '---\ntitle: "Company Spec"\nsource_url: "local"\nsource_type: internal\nsource_date: 2026-07-01\nauthor: "Team"\ningested: 2026-07-02\ningestion_tool: local\ntags: [%s]\n---\n\n## Overview\n\nBody.\n' "$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0])["domains"][0]["name"]' "$FX/_meta/wiki.config.yaml")" > "$doc"
+    run_validate "$FX" raw/internal/company-spec.md
+    if [ "$VRC" -eq 0 ]; then ok "validate: raw/internal file with source_type internal passes"; else not_ok "validate: raw/internal file with source_type internal passes" "$VOUT"; fi
+    sed 's/^source_type: internal$/source_type: engineering/' "$doc" > "$doc.tmp" && mv "$doc.tmp" "$doc"
+    run_validate "$FX" raw/internal/company-spec.md
+    if [ "$VRC" -ne 0 ]; then
+        assert_contains "$VOUT" "invalid source_type 'engineering' (expected: internal|blog|" "validate: unknown source_type is rejected and internal is listed"
+    else
+        not_ok "validate: unknown source_type is rejected and internal is listed" "expected non-zero exit; out=$VOUT"
+    fi
+}
+
 test_core_skill_contracts() {
     local context="$REPO/.claude/skills/context/SKILL.md"
     local query="$REPO/.claude/skills/query/SKILL.md"
@@ -807,6 +856,8 @@ if [ "$VRC" -eq 0 ]; then ok "validate: YAML inline comment remains valid"; else
 test_precommit_integration
 test_maintain_path_rendering_contract
 test_ingest_heading_contract
+test_source_type_consistency
+test_validate_internal_source_type
 test_core_skill_contracts
 test_context_filename_contract
 test_rebuild_recovery_contract

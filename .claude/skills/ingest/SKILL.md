@@ -16,7 +16,7 @@ Before that structure check or any write, run `./hooks/repository-roots.sh || st
 ## Input
 
 - One or more URLs, or local file paths (md, pdf, txt)
-- Optional: `source_type` override (required for podcast/video URLs, since those can't be auto-detected)
+- Optional: `source_type` override (required for podcast/video URLs, since those can't be auto-detected; also use it to file a company-authored PDF or URL as `internal`)
 
 ## Context Loading
 
@@ -36,7 +36,7 @@ Auto-detect from URL or file:
 | `twitter.com/*` or `x.com/*` | tweet |
 | `arxiv.org/*` or file ends `.pdf` | paper |
 | Other URLs | blog |
-| Local `.md` or `.txt` files | detect from content or default to blog |
+| Local `.md` or `.txt` files | `internal` when written by the company (specs, plans, memos, notes); otherwise detect from content (a saved article is a blog) |
 | Podcasts / videos | **User must specify explicitly** |
 
 ### Step 2: Fetch Content
@@ -74,6 +74,7 @@ Map `source_type` to directory:
 
 | source_type | directory |
 |---|---|
+| internal | `raw/internal/` |
 | blog | `raw/blogs/` |
 | paper | `raw/papers/` |
 | tweet | `raw/people/` |

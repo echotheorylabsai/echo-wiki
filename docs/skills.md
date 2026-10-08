@@ -32,7 +32,7 @@ Echo Wiki is command-driven, not a background synchronizer. `/ingest` updates th
 ```
 
 What it does:
-1. Detects source type from URL pattern (blog, substack, github, paper, tweet)
+1. Detects source type from URL pattern (blog, substack, github, paper, tweet); company-written Markdown and text files are filed as `internal`
 2. Fetches content via Tavily or Firecrawl
 3. Preserves source headings or adds `## Content` when the cleaned body has no heading, ensuring every new raw source has a stable evidence anchor
 4. Downloads images locally
@@ -50,14 +50,16 @@ What it does:
 | `twitter.com/*`, `x.com/*` | tweet | `raw/people/` |
 | `arxiv.org/*`, `*.pdf` | paper | `raw/papers/` |
 | Other URLs | blog | `raw/blogs/` |
+| Local `.md` / `.txt` written by your team | internal | `raw/internal/` |
 | Podcasts / videos | — | User must specify type |
+| Company-authored PDF or URL | internal (override) | `raw/internal/` |
 
 ## /compile
 
 **Compile raw sources into structured wiki articles.**
 
 ```
-/compile raw/blogs/article.md    # Compile a specific source
+/compile raw/<category>/article.md   # Compile a specific source
 /compile all                      # Recompile entire wiki
 ```
 

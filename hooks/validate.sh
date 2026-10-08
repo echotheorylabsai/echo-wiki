@@ -103,8 +103,8 @@ extract_source_types() {
     ruby -rdate -ryaml -e '
       config=YAML.safe_load(File.read(ARGV[0]), permitted_classes: [Date], aliases: false)
       values=Array(config["source_types"]).map(&:to_s)
-      puts(values.empty? ? "blog|paper|tweet|substack|github|podcast|video" : values.join("|"))
-    ' "$CONFIG" 2>/dev/null || echo "blog|paper|tweet|substack|github|podcast|video"
+      puts(values.empty? ? "internal|blog|paper|tweet|substack|github|podcast|video" : values.join("|"))
+    ' "$CONFIG" 2>/dev/null || echo "internal|blog|paper|tweet|substack|github|podcast|video"
 }
 
 VALID_TYPES=$(extract_valid_types)
