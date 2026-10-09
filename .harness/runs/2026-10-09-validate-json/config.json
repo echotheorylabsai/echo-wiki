@@ -1,0 +1,33 @@
+{
+  "knobs": {
+    "phases": [
+      "triage",
+      "research",
+      "plan",
+      "build",
+      "verify"
+    ],
+    "phase_agent": {
+      "build": "same"
+    },
+    "evaluator_cadence": "end",
+    "plan_review": true
+  },
+  "record": {
+    "tier": "M",
+    "triage_signals": {
+      "areas": [
+        "hooks",
+        "tests",
+        "docs"
+      ],
+      "file_count_estimate": 5,
+      "familiarity": "medium"
+    },
+    "benchmark_tier": "M",
+    "arm": "baseline",
+    "assigned_commit": "235cf61350f576d0291a0fb5b8190701a88139f7",
+    "origin_tier": "M",
+    "predicted_knobs": null
+  }
+}

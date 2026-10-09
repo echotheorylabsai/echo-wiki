@@ -44,7 +44,7 @@ Use `/query` for questions the wiki should answer — it navigates progressively
 
 ## Validation
 
-- **`./hooks/validate.sh [--all|--staged|<paths>]`** — deterministic schema enforcement (required fields, enums, dates, tags vs domains, source-path existence, filenames, wikilinks). When installed, the supplied pre-commit hook validates the staged snapshot automatically; otherwise run validation manually.
+- **`./hooks/validate.sh [--json] [--all|--staged|<paths>]`** — deterministic schema enforcement (required fields, enums, dates, tags vs domains, source-path existence, filenames, wikilinks). `--json` prints `{"files_validated": N, "violations": [{"file", "message"}]}` for tools. When installed, the supplied pre-commit hook validates the staged snapshot automatically; otherwise run validation manually.
 - **`./hooks/reindex.sh`** — deterministically regenerates `_index.md` and `_backlinks.md`. Skills call it; never hand-write those two files.
 - **`/lint`** for semantic checks (contradictions, staleness, duplicates, orphans, source fidelity)
 - **`./hooks/token-count.sh`** to check wiki size anytime
