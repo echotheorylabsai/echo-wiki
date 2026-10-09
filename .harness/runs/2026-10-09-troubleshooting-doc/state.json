@@ -2,7 +2,7 @@
   "task_id": "2026-10-09-troubleshooting-doc",
   "branch": "troubleshooting-doc",
   "phase": "build",
-  "phase_open": true,
+  "phase_open": false,
   "controlling_session": "9c93bf18-aec4-4bfb-98b2-d20b6f25d8c7",
   "created_at": "2026-10-09T13:39:17.642Z"
 }
