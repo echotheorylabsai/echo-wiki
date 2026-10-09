@@ -105,6 +105,9 @@ Checks: C8
 - 2026-10-09 13:05 · claude-opus-5-5 · triage — Whether Ruby is on PATH for both runners; the first PR run answers it. [Check: C8]
 - 2026-10-09 13:05 · claude-opus-5-5 · triage — How to record C8: `harness pr` refuses unless every check passes, but C8 needs the PR open. Ask user before PR. [Check: C8] [Cites: lean-harness/harness/commands/pr.py:48]
 - 2026-10-09 13:15 · claude-opus-5-5 · research — `gh run list` needs approval in this headless session; observing C8 via `gh pr checks` may too. [Check: C8]
+- 2026-10-09 13:10 · claude-opus-5-5 · verify — Hook suite never run on GNU/Linux (mawk, GNU sed/sort); the Ubuntu job is first proof. [Check: C8]
 
 ## Friction
 - 2026-10-09 13:05 · claude-opus-5-5 · triage — Observational check that needs the PR deadlocks with `harness pr`'s all-checks-pass gate. [Cites: lean-harness/harness/gate.py:20]
+- 2026-10-09 13:11 · claude-opus-5-5 · verify — Builder note times 13:15–13:30 were estimated, not clock-read; real clock was 13:11 here.
+- 2026-10-09 13:11 · claude-opus-5-5 · verify — C1–C7 pass; stopped before `harness pr` awaiting user decision on observing C8. [Check: C8]
