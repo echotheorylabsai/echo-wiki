@@ -130,16 +130,49 @@ prompt
 
 ## Milestones
 
+### M1 — `--json` mode in `hooks/validate.sh`
+Checks: C2, C3, C4, C5, C6, C7
+- Remove every `--json` from the argument list before mode detection (no arrays: re-`set --` the
+  positional list), and remember it in a flag. The remaining arguments drive `--all` / `--staged` /
+  paths exactly as today; `--json` alone means `--all`.
+- `err()` keeps writing the identical text line to `$ERR_FILE` and also records file and message as
+  separate fields in a second temp file (cleaned up by the existing `trap`).
+- Report block: without `--json`, untouched. With `--json`, print one compact line
+  `{"files_validated":N,"violations":[{"file":"…","message":"…"},…]}` then a newline; nothing else on
+  stdout. Exit codes unchanged. `NOTE:` lines stay on stderr.
+- JSON string escaping in one awk function: `\` → `\\`, `"` → `\"`, tab/CR/LF → `\t`/`\r`/`\n`, other
+  control bytes → `\u00XX`. Bytes ≥ 0x80 pass through unchanged.
+
+### M2 — Tests in `tests/run-tests.sh`
+Checks: C1, C8
+- Three new test functions, added to the run list, labels prefixed `validate --json: `:
+  clean run (populated fixture, exit 0, `files_validated` 12, empty `violations`); violations run
+  (invalid fixture, exit 1, violations equal text-mode lines); quote run (workspace note whose message
+  and filename contain `"` and `\`, exact pair present after parsing).
+- JSON parsed in tests with `ruby -rjson` (Ruby is already used by the runner).
+
+### M3 — Documentation
+Checks: C9
+- Add `--json` to: the `validate.sh` usage header, `docs/validation.md` usage block plus a short
+  "JSON output" subsection (shape, `structure` pseudo-file, exit codes, stdout-only), `README.md:216`,
+  `CLAUDE.md:47`, and the usage block in `docs/troubleshooting.md`.
+
 ## Decisions
 
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Tier M; stop after the plan phase for user review. [Why: request.md asks to review the plan before code.]
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — JSON escaping uses sed/awk only; no new `ruby` calls in `validate.sh`. [Why: "no new runtime dependency" in spirit; keeps --json pure shell.] [Check: C7]
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Violations stored as separate file/message fields, text line rendered from them. [Why: messages contain ": ", so splitting text lines is unsafe.] [Cites: hooks/validate.sh:30]
+- 2026-10-09 11:00 · claude/opus-5.5 · plan — Keep `$ERR_FILE` text writes unchanged; add a parallel field file for JSON. [Why: zero risk to byte-for-byte text output.] [Check: C2]
+- 2026-10-09 11:00 · claude/opus-5.5 · plan — JSON is one compact line plus newline. [Why: easiest for tools; no pretty-printer without new deps.]
+- 2026-10-09 11:00 · claude/opus-5.5 · plan — `--json` accepted anywhere, repeatable; literal path named `--json` unsupported. [Why: request says it combines with every mode.] [Check: C3]
+- 2026-10-09 11:00 · claude/opus-5.5 · plan — `files_validated` reported in both clean and failing runs. [Why: request asks for the count; text mode just omits it on failure.] [Check: C4]
+- 2026-10-09 11:00 · claude/opus-5.5 · plan — Skill docs, AGENTS.md, GEMINI.md untouched. [Why: they prescribe specific modes, not usage; tests grep skill text.] [Check: C9]
 
 ## Unknowns
 
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — JSON key names unspecified; defaulted to `files_validated`, `violations[].file`, `violations[].message`. [Why: plain, self-describing names.] [Check: goal]
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Structure problems use pseudo-file `structure`; JSON keeps it as the `file` value. [Why: mirrors text output.] [Cites: hooks/validate.sh:541]
 - 2026-10-09 10:48 · claude/opus-5.5 · triage — Spike `harness check --all`: C1, C2, C7 pass; C3–C6, C8, C9 fail only because `--json` is unimplemented. [Why: proves checks are well-formed.]
+- 2026-10-09 10:55 · claude/opus-5.5 · research — File paths containing a newline would split a violation across lines; existing text mode has the same limit. Out of scope. [Cites: hooks/validate.sh:582]
 
 ## Friction
