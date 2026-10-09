@@ -1,0 +1,8 @@
+{
+  "task_id": "2026-10-09-echo-wiki-ci",
+  "branch": "echo-wiki-ci",
+  "phase": "build",
+  "phase_open": false,
+  "controlling_session": "da758a23-cfb8-408b-a8d3-26c987103ffc",
+  "created_at": "2026-10-09T16:56:06.266Z"
+}
