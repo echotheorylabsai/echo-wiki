@@ -55,9 +55,6 @@ Expected: `docs/validation.md` names the workflow file.
 grep -q '\.github/workflows/ci\.yml' docs/validation.md
 ```
 
-### C8 — CI runs on this task's PR and every job passes (observational)
-Expected: `gh pr checks` lists every `ci.yml` job (tests on ubuntu-latest and macos-latest, validate, docs build) as pass, and the macOS test log prints `GNU bash, version 3.2`.
-
 ## Tier
 M — two files of new config and docs in familiar code, plus one observational check (C8), which makes it M.
 
@@ -100,6 +97,7 @@ Checks: C8
 - 2026-10-09 13:20 · claude-opus-5-5 · plan — Concurrency group keyed on `head_ref || ref`, never `pages`. [Why: cancels superseded runs per branch without touching deploy's group.] [Check: C1] [Cites: .github/workflows/deploy-docs.yml:17]
 - 2026-10-09 13:20 · claude-opus-5-5 · plan — Node 20 with npm cache, matching deploy-docs. [Why: same toolchain as the published build.] [Check: C6] [Cites: .github/workflows/deploy-docs.yml:32]
 - 2026-10-09 13:20 · claude-opus-5-5 · plan — `fail-fast: false` on the test matrix. [Why: an Ubuntu failure must not hide the macOS Bash 3.2 result.] [Check: C8]
+- 2026-10-09 13:16 · claude-opus-5-5 · verify — User chose: drop C8 for now; restore verbatim from plan.approved.md later. [Why: observable only once PR exists; `harness pr` refuses while unrecorded.] [Check: C8]
 
 ## Unknowns
 - 2026-10-09 13:05 · claude-opus-5-5 · triage — Whether Ruby is on PATH for both runners; the first PR run answers it. [Check: C8]
