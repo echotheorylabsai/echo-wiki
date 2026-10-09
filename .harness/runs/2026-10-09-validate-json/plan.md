@@ -178,6 +178,7 @@ Checks: C9
 - 2026-10-09 15:10 · claude/opus-5.5 · build — User approved plan and default JSON key names; key-name Unknown resolved. [Why: user review of plan.md.] [Check: goal]
 - 2026-10-09 15:12 · claude/opus-5.5 · build — Field file stores file and message on alternating lines, not a delimiter. [Why: filenames may hold any byte except newline.]
 - 2026-10-09 11:00 · claude/opus-5.5 · plan — Skill docs, AGENTS.md, GEMINI.md untouched. [Why: they prescribe specific modes, not usage; tests grep skill text.] [Check: C9]
+- 2026-10-09 16:05 · claude/opus-5.5 · verify — Verifier's non-UTF-8 and newline-path findings left as known limits; flagged to user. [Why: approved plan chose byte pass-through and scoped out newlines.]
 
 ## Unknowns
 
@@ -185,5 +186,7 @@ Checks: C9
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Structure problems use pseudo-file `structure`; JSON keeps it as the `file` value. [Why: mirrors text output.] [Cites: hooks/validate.sh:541]
 - 2026-10-09 10:48 · claude/opus-5.5 · triage — Spike `harness check --all`: C1, C2, C7 pass; C3–C6, C8, C9 fail only because `--json` is unimplemented. [Why: proves checks are well-formed.]
 - 2026-10-09 10:55 · claude/opus-5.5 · research — Paths containing a newline split a violation line; text mode shares this limit. Out of scope. [Cites: hooks/validate.sh:582]
+- 2026-10-09 11:03 · verifier/opus-5.5 · verify — Non-UTF-8 bytes in filenames pass through raw, making JSON invalid. [Why: RFC 8259 requires UTF-8.] [Cites: hooks/validate.sh:661]
+- 2026-10-09 11:03 · verifier/opus-5.5 · verify — Newline in a path argument shifts field-file pairs; later JSON violations mis-paired. [Why: alternating-line format.] [Cites: hooks/validate.sh:46]
 
 ## Friction
