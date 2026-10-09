@@ -140,5 +140,6 @@ prompt
 
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — JSON key names unspecified; defaulted to `files_validated`, `violations[].file`, `violations[].message`. [Why: plain, self-describing names.] [Check: goal]
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Structure problems use pseudo-file `structure`; JSON keeps it as the `file` value. [Why: mirrors text output.] [Cites: hooks/validate.sh:541]
+- 2026-10-09 10:48 · claude/opus-5.5 · triage — Spike `harness check --all`: C1, C2, C7 pass; C3–C6, C8, C9 fail only because `--json` is unimplemented. [Why: proves checks are well-formed.]
 
 ## Friction
