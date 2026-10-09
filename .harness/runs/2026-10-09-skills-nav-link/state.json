@@ -2,7 +2,7 @@
   "task_id": "2026-10-09-skills-nav-link",
   "branch": "skills-nav-link",
   "phase": "build",
-  "phase_open": false,
-  "controlling_session": "d786d1a9-409f-4f67-9c97-00236e4aa672",
+  "phase_open": true,
+  "controlling_session": null,
   "created_at": "2026-10-09T13:39:16.073Z"
 }
