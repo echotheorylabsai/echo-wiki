@@ -6,7 +6,7 @@ Rewrite the "Prerequisites" section of `docs/getting-started.md` as a three-colu
 
 - The section holds one table with header `| Tool | Needed for | Required? |` and one row each for: coding agent, Git, Bash, Ruby, symlink support, Obsidian, source extraction tools, Node.js.
 - The old paragraph (Node.js only for the docs site; no API keys) is folded into the rows plus at most one short sentence after the table.
-- Every fact stays as it is today; no version numbers; the rest of the file and every other file are untouched.
+- Every fact stays as it is on main, including #15's minimum versions; no other version numbers; the rest of the file and every other file are untouched.
 
 ## Acceptance checks
 
@@ -34,10 +34,10 @@ Expected: every key phrase from today's bullets and paragraph is still in the se
 for p in 'local file and command access' 'standard YAML library' 'no gems required' 'wiki/' 'local Markdown' 'URL/PDF/media' "agent's available tools" 'documentation site' 'API keys'; do sed -n '/^## Prerequisites$/,/^## Get the Onboarding Skill$/p' docs/getting-started.md | grep -qF "$p" || { echo "missing: $p"; exit 1; }; done
 ```
 
-### C5 — No version numbers added
-Expected: no digits anywhere in the section.
+### C5 — No version numbers beyond those on main
+Expected: the section's numbers equal the merge base's Prerequisites numbers (Bash 3.2, Ruby 2.6, Node.js 18), no more, no fewer.
 ```sh
-! sed -n '/^## Prerequisites$/,/^## Get the Onboarding Skill$/p' docs/getting-started.md | grep -q '[0-9]'
+git show "$(git merge-base HEAD origin/main)":docs/getting-started.md | sed -n '/^## Prerequisites$/,/^## Get the Onboarding Skill$/p' | grep -o '[0-9][0-9.]*' | sort -u > "${TMPDIR:-/tmp}/gs-main-nums.txt" && sed -n '/^## Prerequisites$/,/^## Get the Onboarding Skill$/p' docs/getting-started.md | grep -o '[0-9][0-9.]*' | sort -u | cmp -s - "${TMPDIR:-/tmp}/gs-main-nums.txt"
 ```
 
 ### C6 — Rest of getting-started.md unchanged
@@ -64,6 +64,7 @@ prompt
 
 - 2026-10-09 12:41 · claude-opus-5-5 · triage — Pinned C6/C7 base to 33ed7fc, not `main`. Why: local `main` is stale; 33ed7fc equals HEAD and origin/main. Check: C6, C7
 - 2026-10-09 12:42 · claude-opus-5-5 · build — C6/C7 base now `git merge-base HEAD origin/main`. Why: rebase pulled #14 (vitepress config), so fixed 33ed7fc flagged upstream changes. Check: C6, C7
+- 2026-10-09 13:20 · claude-opus-5-5 · build — C5 now allows exactly main's version numbers; versions sit in Tool cells. Why: #15 merged them; user said keep them. Check: C5, goal
 
 ## Unknowns
 
