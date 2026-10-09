@@ -50,6 +50,17 @@ jobs:
       - name: Validate wiki and raw content
         run: ./hooks/validate.sh --all
 
+      # The exit status alone cannot catch empty or garbled output; parse it.
+      - name: Check --json output is valid JSON
+        run: |
+          ./hooks/validate.sh --all --json > "$RUNNER_TEMP/validate.json"
+          ruby -rjson -e '
+            out = JSON.parse(File.read(ARGV[0]))
+            ok = out.is_a?(Hash) && out["files_validated"].is_a?(Integer) && out["violations"].is_a?(Array)
+            abort "validate.sh --json: unexpected shape: #{out.inspect}" unless ok
+            puts "OK: --json output parsed (#{out["files_validated"]} files)"
+          ' "$RUNNER_TEMP/validate.json"
+
   docs:
     name: Docs build
     runs-on: ubuntu-latest
