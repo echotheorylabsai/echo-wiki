@@ -19,7 +19,7 @@ To re-check a single file while fixing it, pass its repository-relative path:
 
 ```bash
 ./hooks/validate.sh wiki/concepts/example.md
-./hooks/validate.sh --staged     # what the pre-commit hook checks
+./hooks/validate.sh --staged     # staged .md files under wiki/ and raw/
 ./hooks/validate.sh --all        # every .md under wiki/ and raw/
 ```
 
@@ -76,7 +76,7 @@ See [Frontmatter Schema](/schema) for complete examples of each zone.
 
 ## Invalid enum values
 
-Enum fields must match one of the allowed values exactly. Matching is case-sensitive and the allowed values are lowercase.
+Enum fields must match one of the allowed values exactly. Matching is exact and case-sensitive; the built-in values are all lowercase.
 
 | Message | Where | Fix |
 |---|---|---|
