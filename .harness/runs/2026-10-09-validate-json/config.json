@@ -1,0 +1,6 @@
+{"knobs": {"phases": ["triage", "research", "plan", "build", "verify"],
+           "phase_agent": {"build": "same"},
+           "evaluator_cadence": "end",
+           "plan_review": true},
+ "record": {"tier": "M",
+            "triage_signals": {"areas": ["hooks", "tests", "docs"], "file_count_estimate": 5, "familiarity": "medium"}}}
