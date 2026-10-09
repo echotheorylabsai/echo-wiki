@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "integration_remote": "origin",
+  "default_branch": "main",
+  "cloud_env_vars": [],
+  "deadline_hours": {
+    "S": 4,
+    "M": 16,
+    "L": 48
+  },
+  "expiry_days": 21,
+  "defect_window_days": 14,
+  "target_benchmark_tier": "M",
+  "n": 10,
+  "alpha": 0.05,
+  "min_gain": 0.2,
+  "challenger_commit": null,
+  "shared_commit": null,
+  "memory_snapshot_commit": null,
+  "baseline_commit": "6da5ec0d3e0bb66a7fd1a21526ef58ea09d9f699"
+}
