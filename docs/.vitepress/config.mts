@@ -9,6 +9,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/getting-started' },
+      { text: 'Skills', link: '/skills' },
       { text: 'Configuration', link: '/configuration' },
       { text: 'GitHub', link: 'https://github.com/echotheorylabsai/echo-wiki' }
     ],
