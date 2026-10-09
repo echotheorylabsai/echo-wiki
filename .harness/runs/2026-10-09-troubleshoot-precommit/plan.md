@@ -24,7 +24,7 @@ awk '/^## Commit blocked by the pre-commit hook$/{f=1;print;next} /^## /{f=0} f'
 ### C2 — Sections are in the requested order
 Expected: first `##` is "Which rules apply to a file", last is "After fixing", the rest are sorted alphabetically (case-insensitive).
 ```sh
-grep '^## ' docs/troubleshooting.md > /tmp/c2-all.txt && test "$(head -n 1 /tmp/c2-all.txt)" = '## Which rules apply to a file' && test "$(tail -n 1 /tmp/c2-all.txt)" = '## After fixing' && sed '1d;$d' /tmp/c2-all.txt > /tmp/c2-mid.txt && LC_ALL=C sort -f /tmp/c2-mid.txt | diff /tmp/c2-mid.txt - && test "$(wc -l < /tmp/c2-all.txt | tr -d ' ')" = 13
+grep '^## ' docs/troubleshooting.md > /tmp/c2-all.txt && test "$(head -n 1 /tmp/c2-all.txt)" = '## Which rules apply to a file' && test "$(tail -n 1 /tmp/c2-all.txt)" = '## After fixing' && sed '1d;$d' /tmp/c2-all.txt > /tmp/c2-mid.txt && LC_ALL=C sort -f /tmp/c2-mid.txt | diff /tmp/c2-mid.txt - && test "$(wc -l < /tmp/c2-all.txt | tr -d ' ')" = 14
 ```
 
 ### C3 — Every existing line is kept
@@ -64,6 +64,7 @@ prompt
 - 2026-10-09 · claude-opus-5-5 · triage — Heading "Commit blocked by the pre-commit hook"; sorts after "Broken wikilinks". [Why: request leaves the name open; avoid a leading "The".] [Check: C1, C2]
 - 2026-10-09 · claude-opus-5-5 · triage — Output sample keeps the hook's literal `--no-verify` line; prose never offers it. [Why: show real output yet not recommend skipping.] [Check: C5] [Cites: hooks/pre-commit.sh:26]
 - 2026-10-09 · claude-opus-5-5 · triage — Alphabetical means case-insensitive by heading text (`LC_ALL=C sort -f`). [Why: request does not define collation.] [Check: C2]
+- 2026-10-09 · claude-opus-5-5 · build — C2 heading count corrected 13→14: base page has 13 `##` headings, plus the new one. [Why: triage miscounted.] [Check: C2]
 
 ## Friction
 
