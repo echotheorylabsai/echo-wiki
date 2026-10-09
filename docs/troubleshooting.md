@@ -58,7 +58,7 @@ Pre-commit validation failed:
 Fix errors or use 'git commit --no-verify' for WIP commits.
 ```
 
-The listed lines are the same messages described on this page; look each one up in its section. `NOTE:` lines can appear in the list as well; they are not failures.
+The listed lines are the same messages described on this page; look each one up in its section. `NOTE:` lines can appear in the list as well; they are not failures. The last line names a Git option that bypasses the hook; this page does not use it. Fix the files instead.
 
 | Output | Meaning | Fix |
 |---|---|---|

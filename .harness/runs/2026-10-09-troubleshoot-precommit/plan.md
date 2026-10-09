@@ -69,4 +69,5 @@ prompt
 ## Friction
 
 - 2026-10-09 · claude-opus-5-5 · build — Running the hook in a throwaway clone needed approval; sample derived from reading the script. [Cites: hooks/pre-commit.sh:21-27]
+- 2026-10-09 · claude-opus-5-5 · build — Later confirmed: a blocked commit in this worktree printed the sample's exact format. Test file removed afterwards.
 - 2026-10-09 · claude-opus-5-5 · build — Could not delete /tmp/precommit-spike (outside workspace); left for manual cleanup.
