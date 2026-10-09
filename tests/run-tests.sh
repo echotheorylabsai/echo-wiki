@@ -134,6 +134,54 @@ test_validate_all_invalid() {
     fi
 }
 
+JOUT=""
+JRC=0
+run_validate_json() { # fixture-root args... (stdout only, so NOTE lines cannot break parsing)
+    local root="$1"
+    shift
+    JOUT="$(cd "$root" && ECHO_WIKI_ROOT="$root" "$REPO/hooks/validate.sh" --json "$@" 2>/dev/null)"
+    JRC=$?
+}
+
+test_validate_json_clean() {
+    new_fixture populated
+    run_validate_json "$FX" --all
+    if [ "$JRC" -eq 0 ] && printf '%s' "$JOUT" | ruby -rjson -e 'exit(JSON.parse(STDIN.read) == {"files_validated" => 12, "violations" => []} ? 0 : 1)'; then
+        ok "validate --json: clean run reports 12 files and no violations"
+    else
+        not_ok "validate --json: clean run reports 12 files and no violations" "rc=$JRC out=$JOUT"
+    fi
+}
+
+test_validate_json_violations() {
+    new_fixture invalid
+    local text
+    text="$(cd "$FX" && ECHO_WIKI_ROOT="$FX" "$REPO/hooks/validate.sh" --all 2>/dev/null)"
+    run_validate_json "$FX" --all
+    if [ "$JRC" -eq 1 ] && ruby -rjson -e '
+        d = JSON.parse(ARGV[0]); lines = ARGV[1].split("\n")[0...-1]
+        got = d["violations"].map { |v| "#{v["file"]}: #{v["message"]}" }
+        exit(!got.empty? && got == lines ? 0 : 1)' "$JOUT" "$text"; then
+        ok "validate --json: violations match text output in order"
+    else
+        not_ok "validate --json: violations match text output in order" "rc=$JRC out=$JOUT"
+    fi
+}
+
+test_validate_json_quote_escaping() {
+    new_fixture populated
+    printf '%s\n' '---' 'title: Quote check' "created: '20\"26\\x'" '---' '# Note' > "$FX/wiki/workspaces/my-notes/q\"\\x.md"
+    run_validate_json "$FX" "wiki/workspaces/my-notes/q\"\\x.md"
+    if [ "$JRC" -eq 1 ] && ruby -rjson -e '
+        d = JSON.parse(ARGV[0])
+        want = {"file" => %q(wiki/workspaces/my-notes/q"\x.md), "message" => %q(invalid date format in '"'"'created'"'"' (expected YYYY-MM-DD, got '"'"'20"26\x'"'"'))}
+        exit(d["files_validated"] == 1 && d["violations"].include?(want) ? 0 : 1)' "$JOUT"; then
+        ok "validate --json: quote and backslash are escaped in file and message"
+    else
+        not_ok "validate --json: quote and backslash are escaped in file and message" "rc=$JRC out=$JOUT"
+    fi
+}
+
 test_maintain_path_rendering_contract() {
     local skill="$REPO/.claude/skills/maintain/SKILL.md"
     if grep -Fq 'Use vault-relative `[[wikilinks]]` only for affected files under `wiki/`.' "$skill" \
@@ -890,6 +938,9 @@ new_fixture invalid
 run_validate "$FX" wiki/concepts/inline-comment-frontmatter.md
 if [ "$VRC" -eq 0 ]; then ok "validate: YAML inline comment remains valid"; else not_ok "validate: YAML inline comment remains valid" "$VOUT"; fi
 test_precommit_integration
+test_validate_json_clean
+test_validate_json_violations
+test_validate_json_quote_escaping
 test_maintain_path_rendering_contract
 test_ingest_heading_contract
 test_source_type_consistency
