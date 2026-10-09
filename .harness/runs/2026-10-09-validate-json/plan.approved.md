@@ -172,8 +172,6 @@ Checks: C9
 - 2026-10-09 11:00 · claude/opus-5.5 · plan — JSON is one compact line plus newline. [Why: easiest for tools; no pretty-printer without new deps.]
 - 2026-10-09 11:00 · claude/opus-5.5 · plan — `--json` accepted anywhere, repeatable; literal path named `--json` unsupported. [Why: request says it combines with every mode.] [Check: C3]
 - 2026-10-09 11:00 · claude/opus-5.5 · plan — `files_validated` reported in both clean and failing runs. [Why: request asks for the count; text mode just omits it on failure.] [Check: C4]
-- 2026-10-09 15:10 · claude/opus-5.5 · build — User approved plan and default JSON key names; key-name Unknown resolved. [Why: user review of plan.md.] [Check: goal]
-- 2026-10-09 15:12 · claude/opus-5.5 · build — Field file stores file and message on alternating lines, not a delimiter. [Why: filenames may hold any byte except newline.]
 - 2026-10-09 11:00 · claude/opus-5.5 · plan — Skill docs, AGENTS.md, GEMINI.md untouched. [Why: they prescribe specific modes, not usage; tests grep skill text.] [Check: C9]
 
 ## Unknowns

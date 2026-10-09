@@ -8,13 +8,15 @@
 #   ./hooks/validate.sh --all        # every .md under wiki/ and raw/
 #   ./hooks/validate.sh --staged     # staged .md files under wiki/ and raw/
 #   ./hooks/validate.sh <path>...    # explicit paths (relative to repo root)
+#   add --json to any form above     # one JSON object on stdout instead of text
 #
 # Zones by path: wiki/workspaces/ -> workspace (light schema);
 # wiki/<entity dir>/ -> KB (full schema); raw/ -> raw schema.
 # _index.md, _backlinks.md, _log.md, .obsidian/, non-.md files are skipped.
 #
 # Exit 0 with "OK: N files validated", or exit 1 after listing violations
-# ("<file>: <problem>") and "Validation failed: N issue(s)".
+# ("<file>: <problem>") and "Validation failed: N issue(s)". With --json:
+# {"files_validated":N,"violations":[{"file":"...","message":"..."},...]}.
 #
 # Root resolution: $ECHO_WIKI_ROOT if set, else `git rev-parse --show-toplevel`.
 # Bash 3.2 compatible. LC_ALL=C.
@@ -24,11 +26,24 @@ export LC_ALL=C
 WIKI_ROOT="${ECHO_WIKI_ROOT:-$(git rev-parse --show-toplevel)}"
 CONFIG="$WIKI_ROOT/_meta/wiki.config.yaml"
 
+# Strip every --json; the remaining arguments select the mode as before.
+JSON=0
+argc=$#
+i=0
+while [ "$i" -lt "$argc" ]; do
+    a="$1"
+    shift
+    if [ "$a" = "--json" ]; then JSON=1; else set -- ${1+"$@"} "$a"; fi
+    i=$((i+1))
+done
+
 ERR_FILE=$(mktemp)
-trap 'rm -f "$ERR_FILE"' EXIT
+FIELD_FILE=$(mktemp) # two lines per violation: file, then message
+trap 'rm -f "$ERR_FILE" "$FIELD_FILE"' EXIT
 
 err() { # relpath message
     echo "$1: $2" >> "$ERR_FILE"
+    printf '%s\n%s\n' "$1" "$2" >> "$FIELD_FILE"
 }
 
 root_child_is_real_dir() { # direct directory under canonical repository root
@@ -574,7 +589,7 @@ done < <(cd "$WIKI_ROOT" && find -P wiki raw -type l -print 2>/dev/null || true)
 # --- Collect target files (relative to WIKI_ROOT) ---
 
 TARGETS=$(mktemp)
-trap 'rm -f "$ERR_FILE" "$TARGETS"' EXIT
+trap 'rm -f "$ERR_FILE" "$FIELD_FILE" "$TARGETS"' EXIT
 
 MODE="${1:---all}"
 case "$MODE" in
@@ -630,6 +645,31 @@ while IFS= read -r rel; do
 done < "$TARGETS"
 
 # --- Report ---
+
+if [ "$JSON" -eq 1 ]; then
+    awk -v n="$VALIDATED" '
+        function esc(s,    out, i, c) { # JSON string body
+            out = ""
+            for (i = 1; i <= length(s); i++) {
+                c = substr(s, i, 1)
+                if (c == "\\") out = out "\\\\"
+                else if (c == "\"") out = out "\\\""
+                else if (c == "\t") out = out "\\t"
+                else if (c == "\r") out = out "\\r"
+                else if (c == "\n") out = out "\\n"
+                else if (c in ord) out = out sprintf("\\u%04x", ord[c])
+                else out = out c
+            }
+            return out
+        }
+        BEGIN { for (i = 1; i < 32; i++) ord[sprintf("%c", i)] = i }
+        NR % 2 == 1 { file = $0; next }
+        { list = list (list == "" ? "" : ",") "{\"file\":\"" esc(file) "\",\"message\":\"" esc($0) "\"}" }
+        END { printf "{\"files_validated\":%d,\"violations\":[%s]}\n", n, list }
+    ' "$FIELD_FILE"
+    [ -s "$ERR_FILE" ] && exit 1
+    exit 0
+fi
 
 if [ -s "$ERR_FILE" ]; then
     cat "$ERR_FILE"
