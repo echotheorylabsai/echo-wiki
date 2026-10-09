@@ -77,12 +77,14 @@ with `cancel-in-progress: true`. Jobs, each starting with `actions/checkout@v4`:
 - `docs` — ubuntu-latest; `actions/setup-node@v4` (node 20, `cache: npm`), `npm ci`, `npm run docs:build`.
 Leave `deploy-docs.yml` untouched.
 Checks: C1, C2, C3, C4, C5, C6
+- 2026-10-09 13:30 · claude-opus-5-5 · build — Added `.github/workflows/ci.yml` (tests matrix with macOS Bash 3.2 PATH shim, validate, docs jobs); C1–C6 pass.
 
 ### M2 — Contributor docs
 In `docs/validation.md` `## Tests`, add one short paragraph: `.github/workflows/ci.yml` runs on every pull
 request and push to `main`; it runs the hook tests on Ubuntu and on macOS under Bash 3.2, `validate.sh --all`
 on the shipped wiki skeleton, and the docs build.
 Checks: C7
+- 2026-10-09 13:30 · claude-opus-5-5 · build — Added one CI paragraph to `docs/validation.md` `## Tests`; C7 passes.
 
 ### M3 — Observe CI on the task PR
 Blocked by the C8 Unknown: needs the PR open, which `harness pr` refuses until C8 passes. Stop after
