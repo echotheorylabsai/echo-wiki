@@ -37,6 +37,7 @@ export default defineConfig({
         items: [
           { text: 'Frontmatter Schema', link: '/schema' },
           { text: 'Provider Support', link: '/providers' },
+          { text: 'Troubleshooting Validation', link: '/troubleshooting' },
         ]
       }
     ],
