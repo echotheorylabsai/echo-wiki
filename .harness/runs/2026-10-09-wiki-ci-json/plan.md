@@ -77,9 +77,13 @@ record `gh pr checks` as C5.
 - 2026-10-09 · claude-opus-5-5 · triage — Step also checks the shape (`files_validated` integer, `violations` list). Why: `null` or `42` is valid JSON but not the documented output. Check: C2
 
 - 2026-10-09 · claude-opus-5-5 · plan — Step uses GitHub's default shell, not `shell: bash`. Why: C1/C2 replay it with `bash -e`; pipefail would diverge. Check: C1, C2
+- 2026-10-09 · claude-opus-5-5 · verify — PASS: C1–C4 pass; step fails on empty, garbled, null, array, wrong keys, string count, trailing junk. [Why: mutation-tested locally]
+- 2026-10-09 · claude-opus-5-5 · verify — C2 non-vacuous: no-parse and parse-only variants fail it; Hash-only check would slip through. [Why: in-memory step mutations]
 
 ## Unknowns
 
 - 2026-10-09 · claude-opus-5-5 · research — None open; parser, shape and shell all confirmed from code. Cites: tests/run-tests.sh:149
+- 2026-10-09 · claude-opus-5-5 · verify — Local check used Ruby 2.6/json 2.1; runner Ruby is newer, unverified until C5. [Why: JSON.parse("null") semantics stable since json 2.0]
+- 2026-10-09 · claude-opus-5-5 · verify — C1 saw 0 files validated locally; real content path untested by C1. [Why: repo has no wiki/raw sources yet]
 
 ## Friction
