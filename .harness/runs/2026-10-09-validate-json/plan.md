@@ -142,6 +142,10 @@ Checks: C2, C3, C4, C5, C6, C7
   stdout. Exit codes unchanged. `NOTE:` lines stay on stderr.
 - JSON string escaping in one awk function: `\` → `\\`, `"` → `\"`, tab/CR/LF → `\t`/`\r`/`\n`, other
   control bytes → `\u00XX`. Bytes ≥ 0x80 pass through unchanged.
+- The field file is created next to `$ERR_FILE` (line 27, before the structure checks call `err()`)
+  and removed by **both** `trap` lines (28 and 577).
+- No added line of `validate.sh`, comments included, may contain the words jq, python, perl, node or
+  ruby (C7 greps them). Tooling hints for consumers go in `docs/validation.md` only.
 
 ### M2 — Tests in `tests/run-tests.sh`
 Checks: C1, C8
@@ -149,6 +153,8 @@ Checks: C1, C8
   clean run (populated fixture, exit 0, `files_validated` 12, empty `violations`); violations run
   (invalid fixture, exit 1, violations equal text-mode lines); quote run (workspace note whose message
   and filename contain `"` and `\`, exact pair present after parsing).
+- The quote test's label must contain the word `quote`, e.g. `validate --json: quote and backslash are
+  escaped` (C8 matches `^ok - validate --json: .*quote`).
 - JSON parsed in tests with `ruby -rjson` (Ruby is already used by the runner).
 
 ### M3 — Documentation
@@ -173,6 +179,6 @@ Checks: C9
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — JSON key names unspecified; defaulted to `files_validated`, `violations[].file`, `violations[].message`. [Why: plain, self-describing names.] [Check: goal]
 - 2026-10-09 10:40 · claude/opus-5.5 · triage — Structure problems use pseudo-file `structure`; JSON keeps it as the `file` value. [Why: mirrors text output.] [Cites: hooks/validate.sh:541]
 - 2026-10-09 10:48 · claude/opus-5.5 · triage — Spike `harness check --all`: C1, C2, C7 pass; C3–C6, C8, C9 fail only because `--json` is unimplemented. [Why: proves checks are well-formed.]
-- 2026-10-09 10:55 · claude/opus-5.5 · research — File paths containing a newline would split a violation across lines; existing text mode has the same limit. Out of scope. [Cites: hooks/validate.sh:582]
+- 2026-10-09 10:55 · claude/opus-5.5 · research — Paths containing a newline split a violation line; text mode shares this limit. Out of scope. [Cites: hooks/validate.sh:582]
 
 ## Friction
