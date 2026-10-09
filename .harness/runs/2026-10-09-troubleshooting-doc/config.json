@@ -1,0 +1,29 @@
+{
+  "knobs": {
+    "phases": [
+      "triage",
+      "build"
+    ],
+    "phase_agent": {
+      "build": "same"
+    },
+    "evaluator_cadence": "none",
+    "plan_review": false
+  },
+  "record": {
+    "tier": "S",
+    "triage_signals": {
+      "areas": [
+        "docs",
+        "docs/.vitepress"
+      ],
+      "file_count_estimate": 2,
+      "familiarity": "high"
+    },
+    "benchmark_tier": "M",
+    "arm": "baseline",
+    "assigned_commit": "235cf61350f576d0291a0fb5b8190701a88139f7",
+    "origin_tier": "S",
+    "predicted_knobs": null
+  }
+}
