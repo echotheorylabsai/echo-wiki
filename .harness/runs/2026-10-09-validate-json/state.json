@@ -1,8 +1,8 @@
 {
   "task_id": "2026-10-09-validate-json",
   "branch": "validate-json",
-  "phase": "verify",
-  "phase_open": false,
-  "controlling_session": "1f4ec06c-bde9-41d9-97ea-a4a8160b74ed",
+  "phase": "build",
+  "phase_open": true,
+  "controlling_session": null,
   "created_at": "2026-10-09T14:32:20.722Z"
 }
