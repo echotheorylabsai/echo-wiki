@@ -21,6 +21,7 @@ To re-check a single file while fixing it, pass its repository-relative path:
 ./hooks/validate.sh wiki/concepts/example.md
 ./hooks/validate.sh --staged     # staged .md files under wiki/ and raw/
 ./hooks/validate.sh --all        # every .md under wiki/ and raw/
+./hooks/validate.sh --json --all # same problems as one JSON object
 ```
 
 Run the script from inside the repository (it locates the root with `git rev-parse --show-toplevel`, or `ECHO_WIKI_ROOT` if set).

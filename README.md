@@ -213,7 +213,7 @@ When `/query` cannot provide a fully evidence-backed answer, it records the ques
 ## Validation
 
 **Deterministic scripts (no LLM):**
-- `./hooks/validate.sh [--all|--staged|<paths>]` — full frontmatter schema (required fields, enums, dates, tags vs domains), source-path existence, filename rules, wikilink resolution, structure integrity
+- `./hooks/validate.sh [--json] [--all|--staged|<paths>]` — full frontmatter schema (required fields, enums, dates, tags vs domains), source-path existence, filename rules, wikilink resolution, structure integrity; `--json` prints one JSON object instead of text
 - `./hooks/reindex.sh` — regenerates `_index.md` and `_backlinks.md` deterministically; skills never hand-write them
 - **Pre-commit hook**, when installed, validates the complete staged snapshot before each commit
 

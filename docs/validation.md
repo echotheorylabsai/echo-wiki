@@ -11,7 +11,22 @@ Enforces `_meta/schemas/frontmatter.yaml` mechanically:
 ./hooks/validate.sh --all        # every .md under wiki/ and raw/
 ./hooks/validate.sh --staged     # staged files (what the pre-commit hook runs)
 ./hooks/validate.sh <path>...    # explicit paths
+./hooks/validate.sh --json [...] # any form above, as one JSON object
 ```
+
+### JSON output
+
+Add `--json` anywhere in the arguments to get machine-readable output. It combines with `--all`, `--staged`, explicit paths, or no mode (`--json` alone means `--all`). Stdout is exactly one line holding one JSON object:
+
+```json
+{"files_validated":2,"violations":[{"file":"wiki/concepts/bad-date.md","message":"invalid date format in 'created' (expected YYYY-MM-DD, got '2026/01/01')"}]}
+```
+
+- `files_validated` — files checked, reported on success and failure.
+- `violations` — one entry per problem, in the same order as text mode; empty when clean. Each `file` and `message` matches the `<file>: <message>` line text mode prints.
+- Wiki-wide structure problems use the pseudo-file `structure`.
+- Exit codes are unchanged: 0 when clean, 1 when there are violations. `NOTE:` lines still go to stderr.
+- Producing JSON needs no extra tools; parse it with any JSON reader, e.g. `./hooks/validate.sh --json | jq .violations`.
 
 `validate.sh` uses Ruby's standard `YAML` parser for frontmatter syntax; Ruby is available by default on supported macOS setups and requires no gem installation.
 

@@ -132,6 +132,7 @@ prompt
 
 ### M1 — `--json` mode in `hooks/validate.sh`
 Checks: C2, C3, C4, C5, C6, C7
+- 2026-10-09 15:20 · claude/opus-5.5 · build — Done: `--json` stripping loop, field file in `err()`, awk JSON report block. Files: hooks/validate.sh.
 - Remove every `--json` from the argument list before mode detection (no arrays: re-`set --` the
   positional list), and remember it in a flag. The remaining arguments drive `--all` / `--staged` /
   paths exactly as today; `--json` alone means `--all`.
@@ -149,6 +150,7 @@ Checks: C2, C3, C4, C5, C6, C7
 
 ### M2 — Tests in `tests/run-tests.sh`
 Checks: C1, C8
+- 2026-10-09 15:25 · claude/opus-5.5 · build — Done: stdout-only helper plus clean, violations and quote tests. Files: tests/run-tests.sh.
 - Three new test functions, added to the run list, labels prefixed `validate --json: `:
   clean run (populated fixture, exit 0, `files_validated` 12, empty `violations`); violations run
   (invalid fixture, exit 1, violations equal text-mode lines); quote run (workspace note whose message
