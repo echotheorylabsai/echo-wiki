@@ -5,11 +5,11 @@ Use the `onboard` skill with your coding agent. It separates fresh repositories 
 ## Prerequisites
 
 - A coding agent with local file and command access
-- Git, Bash, Ruby (standard YAML library; no gems required), and filesystem symlink support
+- Git (any recent version), Bash 3.2 or later, Ruby 2.6 or later (standard YAML library; no gems required), and filesystem symlink support
 - Optional: Obsidian for browsing the resulting `wiki/` folder
 - Source extraction tools only when needed: begin with local Markdown; URL/PDF/media extraction depends on your agent's available tools
 
-Node.js is needed only to build this project's documentation site. API keys are not required to initialize a wiki or ingest local Markdown with an already configured agent.
+Node.js 18 or later is needed only to build this project's documentation site. API keys are not required to initialize a wiki or ingest local Markdown with an already configured agent.
 
 ## Get the Onboarding Skill
 
