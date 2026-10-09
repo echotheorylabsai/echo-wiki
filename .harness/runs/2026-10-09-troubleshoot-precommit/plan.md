@@ -65,6 +65,7 @@ prompt
 - 2026-10-09 · claude-opus-5-5 · triage — Output sample keeps the hook's literal `--no-verify` line; prose never offers it. [Why: show real output yet not recommend skipping.] [Check: C5] [Cites: hooks/pre-commit.sh:26]
 - 2026-10-09 · claude-opus-5-5 · triage — Alphabetical means case-insensitive by heading text (`LC_ALL=C sort -f`). [Why: request does not define collation.] [Check: C2]
 - 2026-10-09 · claude-opus-5-5 · build — C2 heading count corrected 13→14: base page has 13 `##` headings, plus the new one. [Why: triage miscounted.] [Check: C2]
+- 2026-10-09 · claude-opus-5-5 · build — Rebase: adopted main's question headings (#18), re-sorted; new section keeps its heading. [Why: C1 pins that exact heading.] [Check: C1, C2] [Cites: docs/troubleshooting.md:41]
 
 ## Friction
 
