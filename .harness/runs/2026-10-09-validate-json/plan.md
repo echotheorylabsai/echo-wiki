@@ -161,6 +161,7 @@ Checks: C1, C8
 
 ### M3 — Documentation
 Checks: C9
+- 2026-10-09 15:35 · claude/opus-5.5 · build — Done: usage lines and a JSON output section. Files: hooks/validate.sh, docs/validation.md, docs/troubleshooting.md, README.md, CLAUDE.md.
 - Add `--json` to: the `validate.sh` usage header, `docs/validation.md` usage block plus a short
   "JSON output" subsection (shape, `structure` pseudo-file, exit codes, stdout-only), `README.md:216`,
   `CLAUDE.md:47`, and the usage block in `docs/troubleshooting.md`.

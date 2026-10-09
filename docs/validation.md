@@ -19,7 +19,7 @@ Enforces `_meta/schemas/frontmatter.yaml` mechanically:
 Add `--json` anywhere in the arguments to get machine-readable output. It combines with `--all`, `--staged`, explicit paths, or no mode (`--json` alone means `--all`). Stdout is exactly one line holding one JSON object:
 
 ```json
-{"files_validated":2,"violations":[{"file":"wiki/concepts/bad-date.md","message":"invalid date format in 'created' (expected YYYY-MM-DD, got '2026/01/01')"}]}
+{"files_validated":2,"violations":[{"file":"wiki/concepts/bad-date.md","message":"invalid date format in 'created' (expected YYYY-MM-DD, got '07-01-2026')"}]}
 ```
 
 - `files_validated` — files checked, reported on success and failure.
