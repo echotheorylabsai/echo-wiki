@@ -56,7 +56,6 @@ prompt
 
 ### M1 — Add the JSON-parse step to the `validate` job
 Checks: C1, C2, C3, C4
-2026-10-09 · claude-opus-5-5 · build — Added step "Check --json output is valid JSON" (validate.sh to file, Ruby parse + shape check) in .github/workflows/ci.yml.
 
 After the existing `Validate wiki and raw content` step in `.github/workflows/ci.yml`, add one step
 (no `shell:`, no `uses:`) whose `run` is two commands:
