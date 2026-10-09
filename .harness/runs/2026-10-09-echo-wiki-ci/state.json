@@ -1,0 +1,8 @@
+{
+  "task_id": "2026-10-09-echo-wiki-ci",
+  "branch": "echo-wiki-ci",
+  "phase": "triage",
+  "phase_open": true,
+  "controlling_session": "009593ca-c20b-49f4-8b43-326df802a50e",
+  "created_at": "2026-10-09T16:56:06.266Z"
+}

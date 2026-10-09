@@ -1,0 +1,6 @@
+{"knobs": {"phases": ["triage", "research", "plan", "build", "verify"],
+           "phase_agent": {"build": "same"},
+           "evaluator_cadence": "end",
+           "plan_review": false},
+ "record": {"tier": "M",
+            "triage_signals": {"areas": [".github/workflows", "docs"], "file_count_estimate": 2, "familiarity": "high"}}}
