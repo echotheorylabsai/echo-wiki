@@ -41,15 +41,15 @@ Expected: no digits anywhere in the section.
 ```
 
 ### C6 — Rest of getting-started.md unchanged
-Expected: the file minus the Prerequisites section matches base commit `33ed7fc` byte for byte.
+Expected: the file minus the Prerequisites section matches the merge base with `origin/main` byte for byte.
 ```sh
-git show 33ed7fc:docs/getting-started.md | sed '/^## Prerequisites$/,/^## Get the Onboarding Skill$/d' > "${TMPDIR:-/tmp}/gs-main-rest.md" && sed '/^## Prerequisites$/,/^## Get the Onboarding Skill$/d' docs/getting-started.md | cmp -s - "${TMPDIR:-/tmp}/gs-main-rest.md"
+git show "$(git merge-base HEAD origin/main)":docs/getting-started.md | sed '/^## Prerequisites$/,/^## Get the Onboarding Skill$/d' > "${TMPDIR:-/tmp}/gs-main-rest.md" && sed '/^## Prerequisites$/,/^## Get the Onboarding Skill$/d' docs/getting-started.md | cmp -s - "${TMPDIR:-/tmp}/gs-main-rest.md"
 ```
 
 ### C7 — No other project file changed
-Expected: no diff against base commit `33ed7fc` outside the doc and the task folder.
+Expected: no diff against the merge base with `origin/main` outside the doc and the task folder.
 ```sh
-git diff --quiet 33ed7fc -- . ':(exclude)docs/getting-started.md' ':(exclude).harness'
+git diff --quiet "$(git merge-base HEAD origin/main)" -- . ':(exclude)docs/getting-started.md' ':(exclude).harness'
 ```
 
 ## Tier
@@ -63,6 +63,7 @@ prompt
 ## Decisions
 
 - 2026-10-09 12:41 · claude-opus-5-5 · triage — Pinned C6/C7 base to 33ed7fc, not `main`. Why: local `main` is stale; 33ed7fc equals HEAD and origin/main. Check: C6, C7
+- 2026-10-09 12:42 · claude-opus-5-5 · build — C6/C7 base now `git merge-base HEAD origin/main`. Why: rebase pulled #14 (vitepress config), so fixed 33ed7fc flagged upstream changes. Check: C6, C7
 
 ## Unknowns
 
