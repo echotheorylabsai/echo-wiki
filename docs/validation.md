@@ -108,6 +108,8 @@ Golden-file assertions for `reindex.sh` (populated + empty wikis), one fixture p
 
 The onboarding suite checks preview/apply behavior, artifact and Git visibility preservation, path collisions, safe reruns, and exclusion of source knowledge/secrets.
 
+GitHub Actions runs `.github/workflows/ci.yml` on every pull request and every push to `main`: `bash tests/run-tests.sh` on Ubuntu and on macOS (forced to the system Bash 3.2), `./hooks/validate.sh --all` on the shipped wiki skeleton, and `npm ci && npm run docs:build`. The onboarding suite is not part of CI; run it locally.
+
 ## Token Count
 
 Track wiki size over time:
