@@ -38,7 +38,7 @@ The script picks a rule set ("zone") from the file's path. Knowing the zone tell
 
 `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/_log.md`, `.gitkeep` files and anything under `wiki/.obsidian/` are never validated.
 
-## Fix frontmatter shape first
+## Why does validation say the frontmatter is missing or invalid?
 
 If the frontmatter block cannot be read, the script reports one of these messages and **skips every other check for that file**. Fix it, re-run, and the remaining problems for that file will appear.
 
@@ -49,7 +49,7 @@ If the frontmatter block cannot be read, the script reports one of these message
 | `invalid frontmatter syntax` | The text between the markers is not valid YAML, is not a key/value mapping, or a key or value contains a control character. Typical causes: a stray prose line inside the block, an unclosed quote (`title: "Unclosed`), an invalid backslash escape inside double quotes (`"Invalid \q escape"`), or a malformed list (`tags: [ai,, software]`). | Use one `key: value` per line. Close every quote and bracket, quote strings that contain `:` or `#`, and write lists as `["a", "b"]`. Keep wikilinks in `related` quoted, as in the [schema examples](/schema). |
 | `YAML parser unavailable (ruby is required)` | The `ruby` command is not on `PATH`. The script parses YAML with Ruby's standard library and needs no gems. | Install Ruby or add it to `PATH`. |
 
-## Missing required fields
+## Why does validation say a required field is missing?
 
 | Message | Why it fires | Fix |
 |---|---|---|
@@ -75,7 +75,7 @@ Type-specific keys for built-in KB types:
 
 See [Frontmatter Schema](/schema) for complete examples of each zone.
 
-## Invalid enum values
+## Why does validation say a field value is invalid?
 
 Enum fields must match one of the allowed values exactly. Matching is exact and case-sensitive; the built-in values are all lowercase.
 
@@ -88,7 +88,7 @@ Enum fields must match one of the allowed values exactly. Matching is exact and 
 | `invalid source_type '<value>' (expected: <source types>)` | Raw source, and KB article with `type: source-summary` | Use a value from `source_types` in `_meta/wiki.config.yaml` (default `internal`, `blog`, `paper`, `tweet`, `substack`, `github`, `podcast`, `video`). To allow a new type, add it to the config and to the `source_type` lists in `_meta/schemas/frontmatter.yaml`. |
 | `invalid ingestion_tool '<value>' (expected: tavily\|firecrawl\|local)` | Raw source | Use `tavily`, `firecrawl` or `local`. |
 
-## Invalid dates
+## Why does validation say a date format is invalid?
 
 | Message | Why it fires | Fix |
 |---|---|---|
@@ -96,7 +96,7 @@ Enum fields must match one of the allowed values exactly. Matching is exact and 
 
 Date fields that are checked: `created`, `last_updated` and `last_verified` in KB articles (plus `source_date` for `source-summary`); `source_date` and `ingested` in raw sources; `created` in workspace files.
 
-## Tags not in config domains
+## Why does validation say a tag is not in config domains?
 
 | Message | Why it fires | Fix |
 |---|---|---|
@@ -104,7 +104,7 @@ Date fields that are checked: `created`, `last_updated` and `last_verified` in K
 
 Tags are checked in KB articles and raw sources, not in workspace files. If `domains:` in the config is empty, any tag is accepted.
 
-## Filenames that are not kebab-case
+## Why does validation say a filename is not kebab-case?
 
 | Message | Why it fires | Fix |
 |---|---|---|
@@ -113,7 +113,7 @@ Tags are checked in KB articles and raw sources, not in workspace files. If `dom
 
 Filenames are checked in KB articles and raw sources, not in workspace files.
 
-## Broken wikilinks
+## Why does validation say a wikilink is broken?
 
 Every `[[...]]` in a KB article or workspace file is checked, both in the frontmatter (such as `related`) and in the visible body. The script drops any display text after `|` and any anchor after `#`, then expects the file `wiki/<target>.md` to exist.
 
@@ -124,7 +124,7 @@ Every `[[...]]` in a KB article or workspace file is checked, both in the frontm
 
 Wikilinks inside fenced code blocks and HTML comments in the body are not checked; wikilinks in the frontmatter always are. Raw sources are not checked for wikilinks.
 
-## Source paths that do not exist
+## Why does validation say a source path does not exist?
 
 The `sources` list in a KB article holds plain strings, not wikilinks. Each entry is a path from the repository root to a file inside `raw/`, such as `raw/blogs/post.md`.
 
@@ -134,7 +134,7 @@ The `sources` list in a KB article holds plain strings, not wikilinks. Each entr
 | `source path does not exist: <path>` | No file exists at that path from the repository root. Common causes: wikilink syntax (`[[raw/blogs/post]]`), a missing `.md`, a path relative to `wiki/` instead of the root, a typo, or a raw file that was removed. | Use the exact path of an existing file under `raw/`, including `.md`. If the raw file was deleted on purpose, run `/rebuild` so the article is regenerated from the remaining sources. |
 | `source path escapes raw/: <path>` | The file exists but is not inside `raw/`: the path uses `..`, points elsewhere, or goes through a symlink that leaves `raw/`. | Cite only files that live under `raw/`. |
 
-## Evidence locators
+## Why does validation say an evidence locator is missing or invalid?
 
 KB articles, context packs under `wiki/workspaces/knowledge-maintenance/context/`, and files under `wiki/workspaces/<actor>/answers/` must contain at least one visible line of the form `Evidence: raw/<path>.md#<exact heading>`. Lines inside fenced code blocks, HTML comments or raw HTML blocks do not count.
 
@@ -148,7 +148,7 @@ KB articles, context packs under `wiki/workspaces/knowledge-maintenance/context/
 | `evidence heading does not exist: <path>#<heading>` | The raw file has no visible Markdown heading with exactly that text. Headings inside code fences, HTML comments or the raw file's frontmatter do not count. | Copy the heading text exactly from the raw file, without the leading `#` marks. |
 | `missing citable Markdown heading` | A raw source has no visible Markdown heading, so nothing in it can be cited. | Add a heading such as `## Content` before the body. See [Upgrading an Existing Wiki](/validation#upgrading-an-existing-wiki). |
 
-## Structure errors
+## Why does validation report a structure error?
 
 These lines start with `structure:` instead of a file path. They are checked before any file and usually mean the repository layout is incomplete.
 
@@ -162,7 +162,7 @@ These lines start with `structure:` instead of a file path. They are checked bef
 | `managed path may not be a symlink` | A symlink exists somewhere under `wiki/` or `raw/`, or a path passed on the command line is a symlink. | Replace the symlink with a real file or directory. |
 | `path not found` | A path passed on the command line does not exist. | Check the spelling; paths are relative to the repository root. |
 
-## A file was not checked
+## Why did validation skip a file?
 
 The script prints a note on standard error for Markdown files it cannot classify, and does not count them as validated. These notes are not failures: the file is simply not checked.
 
