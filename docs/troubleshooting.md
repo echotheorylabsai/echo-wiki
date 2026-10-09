@@ -38,16 +38,98 @@ The script picks a rule set ("zone") from the file's path. Knowing the zone tell
 
 `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/_log.md`, `.gitkeep` files and anything under `wiki/.obsidian/` are never validated.
 
-## Why does validation say the frontmatter is missing or invalid?
+## Commit blocked by the pre-commit hook
 
-If the frontmatter block cannot be read, the script reports one of these messages and **skips every other check for that file**. Fix it, re-run, and the remaining problems for that file will appear.
+`hooks/pre-commit.sh` runs on every `git commit` once it is installed as `.git/hooks/pre-commit` (see [Pre-commit Hook](/validation#pre-commit-hook) for the install command). It copies the staged snapshot (every file in the Git index) into a temporary directory and runs `validate.sh --all` against that copy. That means it checks:
+
+- every `.md` file under `wiki/` and `raw/` in the snapshot, including files already committed, not only the files in this commit;
+- the staged version of each file, not the version on disk;
+- the staged `_meta/wiki.config.yaml`, so allowed tags, types and directories come from the same snapshot.
+
+When validation fails, the hook prints every line `validate.sh` produced, each prefixed with `  - `, and blocks the commit:
+
+```
+Pre-commit validation failed:
+
+  - wiki/concepts/example.md: missing required field 'summary'
+  - wiki/concepts/example.md: tag 'quantum' not in config domains (expected: general)
+  - Validation failed: 2 issue(s)
+
+Fix errors or use 'git commit --no-verify' for WIP commits.
+```
+
+The listed lines are the same messages described on this page; look each one up in its section. `NOTE:` lines can appear in the list as well; they are not failures.
+
+| Output | Meaning | Fix |
+|---|---|---|
+| `Pre-commit validation failed:` followed by a list | The staged snapshot has at least one validation problem. The commit was not made. | Fix every listed problem, stage the files and commit again (steps below). |
+| `Pre-commit validation failed: could not materialize the staged snapshot.` | Git could not copy the staged files into a temporary directory, so nothing was validated. The commit was not made. | Read the Git error printed above this line, fix its cause, and commit again. |
+| `Pre-commit validation passed` | Every file in the staged snapshot passed. | Nothing to do; the commit goes ahead. |
+
+To fix the files and commit again:
+
+1. Fix each file named in the list.
+2. Stage the fixes with `git add <file>`. The hook only sees staged content, so a fix that is saved but not staged still fails.
+3. Optionally re-check with `./hooks/validate.sh --all`. It reads the files on disk, so it agrees with the hook only when every change is staged.
+4. Run `git commit` again. The hook re-runs on the new snapshot.
+
+Common surprises:
+
+- **A file you did not change is listed.** The hook checks the whole snapshot, so an invalid file that is already committed blocks every commit. Fix and stage that file too.
+- **`structure:` lines for paths that exist on disk.** The snapshot holds only what Git tracks, so a file such as `wiki/_index.md` that was never added counts as missing. Stage it.
+
+## Why did validation skip a file?
+
+The script prints a note on standard error for Markdown files it cannot classify, and does not count them as validated. These notes are not failures: the file is simply not checked.
 
 | Message | Why it fires | Fix |
 |---|---|---|
-| `missing frontmatter` | Line 1 of the file is not exactly `---`. | Start the file with `---` on the very first line, with nothing before it (no blank line, no byte-order mark). |
-| `unclosed frontmatter` | The file has fewer than two lines that are exactly `---`. | Add the closing `---` line after the last field. |
-| `invalid frontmatter syntax` | The text between the markers is not valid YAML, is not a key/value mapping, or a key or value contains a control character. Typical causes: a stray prose line inside the block, an unclosed quote (`title: "Unclosed`), an invalid backslash escape inside double quotes (`"Invalid \q escape"`), or a malformed list (`tags: [ai,, software]`). | Use one `key: value` per line. Close every quote and bracket, quote strings that contain `:` or `#`, and write lists as `["a", "b"]`. Keep wikilinks in `related` quoted, as in the [schema examples](/schema). |
-| `YAML parser unavailable (ruby is required)` | The `ruby` command is not on `PATH`. The script parses YAML with Ruby's standard library and needs no gems. | Install Ruby or add it to `PATH`. |
+| `NOTE: not a KB or workspace path, skipping: <path>` | The file is under `wiki/` but not inside a configured entity directory or `wiki/workspaces/`. | Move it into a configured directory or a workspace, or add the entity type to `_meta/wiki.config.yaml`. |
+| `NOTE: outside wiki/ and raw/, skipping: <path>` | The file is outside both validated zones. | Only files under `wiki/` and `raw/` are validated. |
+
+## Why does validation report a structure error?
+
+These lines start with `structure:` instead of a file path. They are checked before any file and usually mean the repository layout is incomplete.
+
+| Message | Why it fires | Fix |
+|---|---|---|
+| `invalid _meta/wiki.config.yaml` | The config is not valid YAML, has no non-empty `entity_types` list, or an entity type lacks `name`, `dir` or `label`, or two entries share a name or dir. | Repair the config; see [Configuration](/configuration). |
+| `repository root path must be a real directory: <path>` | `_meta`, `raw` or `wiki` is missing at the repository root or is a symlink. | Create the directory, or replace the symlink with a real directory. |
+| `required path missing: <path>` | `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/workspaces/` or a configured KB directory does not exist. | Run `./hooks/reindex.sh` to regenerate the two index files; create missing directories. |
+| `unsafe configured KB directory: <dir>` | An entity type's `dir` is not a single kebab-case path component, or is the reserved name `workspaces`. | Use a plain lowercase name such as `decisions`. |
+| `configured KB directory must be a real direct child: wiki/<dir>` | The configured KB directory is a symlink or otherwise not a real directory directly under `wiki/`. | Replace it with a real directory. |
+| `managed path may not be a symlink` | A symlink exists somewhere under `wiki/` or `raw/`, or a path passed on the command line is a symlink. | Replace the symlink with a real file or directory. |
+| `path not found` | A path passed on the command line does not exist. | Check the spelling; paths are relative to the repository root. |
+
+## Why does validation say a date format is invalid?
+
+| Message | Why it fires | Fix |
+|---|---|---|
+| `invalid date format in '<field>' (expected YYYY-MM-DD, got '<value>')` | A date field is not four digits, a hyphen, two digits, a hyphen, two digits. Only the shape is checked. | Write dates as `2026-04-04`, quoted or unquoted. Values such as `04/04/2026` or `April 4, 2026` fail. |
+
+Date fields that are checked: `created`, `last_updated` and `last_verified` in KB articles (plus `source_date` for `source-summary`); `source_date` and `ingested` in raw sources; `created` in workspace files.
+
+## Why does validation say a field value is invalid?
+
+Enum fields must match one of the allowed values exactly. Matching is exact and case-sensitive; the built-in values are all lowercase.
+
+| Message | Where | Fix |
+|---|---|---|
+| `invalid type '<value>' (expected: <entity type names>)` | KB article | Use a `name` from `entity_types` in `_meta/wiki.config.yaml` (default `concept`, `person`, `tool`, `source-summary`). A common slip is using the directory (`concepts`) or the label (`Concepts`) instead of the name. |
+| `invalid decay_rate '<value>' (expected: fast\|medium\|slow)` | KB article | Use `fast`, `medium` or `slow`. |
+| `invalid confidence '<value>' (expected: high\|medium\|speculative)` | KB article | Use `high`, `medium` or `speculative`. |
+| `invalid category '<value>' (expected: framework\|platform\|service\|product)` | KB article with `type: tool` | Use `framework`, `platform`, `service` or `product`. |
+| `invalid source_type '<value>' (expected: <source types>)` | Raw source, and KB article with `type: source-summary` | Use a value from `source_types` in `_meta/wiki.config.yaml` (default `internal`, `blog`, `paper`, `tweet`, `substack`, `github`, `podcast`, `video`). To allow a new type, add it to the config and to the `source_type` lists in `_meta/schemas/frontmatter.yaml`. |
+| `invalid ingestion_tool '<value>' (expected: tavily\|firecrawl\|local)` | Raw source | Use `tavily`, `firecrawl` or `local`. |
+
+## Why does validation say a filename is not kebab-case?
+
+| Message | Why it fires | Fix |
+|---|---|---|
+| `filename not kebab-case (expected: lowercase-with-hyphens.md)` | The file name does not match `^[a-z0-9]+(-[a-z0-9]+)*\.md$`: only lowercase letters a–z, digits and single hyphens, ending in `.md`. Uppercase letters, underscores, spaces, extra dots, and leading, trailing or doubled hyphens all fail. | Rename the file, for example `Bad_Name.md` to `bad-name.md`. Then update any wikilink that pointed at the old name and run `./hooks/reindex.sh`. |
+| `filename exceeds 60 characters` | The file name, including `.md`, is longer than 60 characters. | Shorten the name and fix wikilinks as above. |
+
+Filenames are checked in KB articles and raw sources, not in workspace files.
 
 ## Why does validation say a required field is missing?
 
@@ -75,26 +157,15 @@ Type-specific keys for built-in KB types:
 
 See [Frontmatter Schema](/schema) for complete examples of each zone.
 
-## Why does validation say a field value is invalid?
+## Why does validation say a source path does not exist?
 
-Enum fields must match one of the allowed values exactly. Matching is exact and case-sensitive; the built-in values are all lowercase.
-
-| Message | Where | Fix |
-|---|---|---|
-| `invalid type '<value>' (expected: <entity type names>)` | KB article | Use a `name` from `entity_types` in `_meta/wiki.config.yaml` (default `concept`, `person`, `tool`, `source-summary`). A common slip is using the directory (`concepts`) or the label (`Concepts`) instead of the name. |
-| `invalid decay_rate '<value>' (expected: fast\|medium\|slow)` | KB article | Use `fast`, `medium` or `slow`. |
-| `invalid confidence '<value>' (expected: high\|medium\|speculative)` | KB article | Use `high`, `medium` or `speculative`. |
-| `invalid category '<value>' (expected: framework\|platform\|service\|product)` | KB article with `type: tool` | Use `framework`, `platform`, `service` or `product`. |
-| `invalid source_type '<value>' (expected: <source types>)` | Raw source, and KB article with `type: source-summary` | Use a value from `source_types` in `_meta/wiki.config.yaml` (default `internal`, `blog`, `paper`, `tweet`, `substack`, `github`, `podcast`, `video`). To allow a new type, add it to the config and to the `source_type` lists in `_meta/schemas/frontmatter.yaml`. |
-| `invalid ingestion_tool '<value>' (expected: tavily\|firecrawl\|local)` | Raw source | Use `tavily`, `firecrawl` or `local`. |
-
-## Why does validation say a date format is invalid?
+The `sources` list in a KB article holds plain strings, not wikilinks. Each entry is a path from the repository root to a file inside `raw/`, such as `raw/blogs/post.md`.
 
 | Message | Why it fires | Fix |
 |---|---|---|
-| `invalid date format in '<field>' (expected YYYY-MM-DD, got '<value>')` | A date field is not four digits, a hyphen, two digits, a hyphen, two digits. Only the shape is checked. | Write dates as `2026-04-04`, quoted or unquoted. Values such as `04/04/2026` or `April 4, 2026` fail. |
-
-Date fields that are checked: `created`, `last_updated` and `last_verified` in KB articles (plus `source_date` for `source-summary`); `source_date` and `ingested` in raw sources; `created` in workspace files.
+| `sources list is empty` | The `sources` key exists but has no entries (`sources: []`). | List at least one raw file. |
+| `source path does not exist: <path>` | No file exists at that path from the repository root. Common causes: wikilink syntax (`[[raw/blogs/post]]`), a missing `.md`, a path relative to `wiki/` instead of the root, a typo, or a raw file that was removed. | Use the exact path of an existing file under `raw/`, including `.md`. If the raw file was deleted on purpose, run `/rebuild` so the article is regenerated from the remaining sources. |
+| `source path escapes raw/: <path>` | The file exists but is not inside `raw/`: the path uses `..`, points elsewhere, or goes through a symlink that leaves `raw/`. | Cite only files that live under `raw/`. |
 
 ## Why does validation say a tag is not in config domains?
 
@@ -103,15 +174,6 @@ Date fields that are checked: `created`, `last_updated` and `last_verified` in K
 | `tag '<tag>' not in config domains (expected: <domains>)` | A value in `tags` does not equal the `name` of a domain under `domains:` in `_meta/wiki.config.yaml`. The default config defines only `general`. Matching is against `name`, not `label`, and is case-sensitive. | Change the tag to a configured domain name, or add the domain to the config (see [Configuration](/configuration)). |
 
 Tags are checked in KB articles and raw sources, not in workspace files. If `domains:` in the config is empty, any tag is accepted.
-
-## Why does validation say a filename is not kebab-case?
-
-| Message | Why it fires | Fix |
-|---|---|---|
-| `filename not kebab-case (expected: lowercase-with-hyphens.md)` | The file name does not match `^[a-z0-9]+(-[a-z0-9]+)*\.md$`: only lowercase letters a–z, digits and single hyphens, ending in `.md`. Uppercase letters, underscores, spaces, extra dots, and leading, trailing or doubled hyphens all fail. | Rename the file, for example `Bad_Name.md` to `bad-name.md`. Then update any wikilink that pointed at the old name and run `./hooks/reindex.sh`. |
-| `filename exceeds 60 characters` | The file name, including `.md`, is longer than 60 characters. | Shorten the name and fix wikilinks as above. |
-
-Filenames are checked in KB articles and raw sources, not in workspace files.
 
 ## Why does validation say a wikilink is broken?
 
@@ -123,16 +185,6 @@ Every `[[...]]` in a KB article or workspace file is checked, both in the frontm
 | `wikilink escapes wiki/: [[<target>]]` | The target starts with `/`, contains `../` or `./`, or resolves through a symlink to a file outside `wiki/`. | Use a plain path relative to `wiki/`, such as `concepts/name`. |
 
 Wikilinks inside fenced code blocks and HTML comments in the body are not checked; wikilinks in the frontmatter always are. Raw sources are not checked for wikilinks.
-
-## Why does validation say a source path does not exist?
-
-The `sources` list in a KB article holds plain strings, not wikilinks. Each entry is a path from the repository root to a file inside `raw/`, such as `raw/blogs/post.md`.
-
-| Message | Why it fires | Fix |
-|---|---|---|
-| `sources list is empty` | The `sources` key exists but has no entries (`sources: []`). | List at least one raw file. |
-| `source path does not exist: <path>` | No file exists at that path from the repository root. Common causes: wikilink syntax (`[[raw/blogs/post]]`), a missing `.md`, a path relative to `wiki/` instead of the root, a typo, or a raw file that was removed. | Use the exact path of an existing file under `raw/`, including `.md`. If the raw file was deleted on purpose, run `/rebuild` so the article is regenerated from the remaining sources. |
-| `source path escapes raw/: <path>` | The file exists but is not inside `raw/`: the path uses `..`, points elsewhere, or goes through a symlink that leaves `raw/`. | Cite only files that live under `raw/`. |
 
 ## Why does validation say an evidence locator is missing or invalid?
 
@@ -148,28 +200,16 @@ KB articles, context packs under `wiki/workspaces/knowledge-maintenance/context/
 | `evidence heading does not exist: <path>#<heading>` | The raw file has no visible Markdown heading with exactly that text. Headings inside code fences, HTML comments or the raw file's frontmatter do not count. | Copy the heading text exactly from the raw file, without the leading `#` marks. |
 | `missing citable Markdown heading` | A raw source has no visible Markdown heading, so nothing in it can be cited. | Add a heading such as `## Content` before the body. See [Upgrading an Existing Wiki](/validation#upgrading-an-existing-wiki). |
 
-## Why does validation report a structure error?
+## Why does validation say the frontmatter is missing or invalid?
 
-These lines start with `structure:` instead of a file path. They are checked before any file and usually mean the repository layout is incomplete.
-
-| Message | Why it fires | Fix |
-|---|---|---|
-| `invalid _meta/wiki.config.yaml` | The config is not valid YAML, has no non-empty `entity_types` list, or an entity type lacks `name`, `dir` or `label`, or two entries share a name or dir. | Repair the config; see [Configuration](/configuration). |
-| `repository root path must be a real directory: <path>` | `_meta`, `raw` or `wiki` is missing at the repository root or is a symlink. | Create the directory, or replace the symlink with a real directory. |
-| `required path missing: <path>` | `wiki/_index.md`, `wiki/_backlinks.md`, `wiki/workspaces/` or a configured KB directory does not exist. | Run `./hooks/reindex.sh` to regenerate the two index files; create missing directories. |
-| `unsafe configured KB directory: <dir>` | An entity type's `dir` is not a single kebab-case path component, or is the reserved name `workspaces`. | Use a plain lowercase name such as `decisions`. |
-| `configured KB directory must be a real direct child: wiki/<dir>` | The configured KB directory is a symlink or otherwise not a real directory directly under `wiki/`. | Replace it with a real directory. |
-| `managed path may not be a symlink` | A symlink exists somewhere under `wiki/` or `raw/`, or a path passed on the command line is a symlink. | Replace the symlink with a real file or directory. |
-| `path not found` | A path passed on the command line does not exist. | Check the spelling; paths are relative to the repository root. |
-
-## Why did validation skip a file?
-
-The script prints a note on standard error for Markdown files it cannot classify, and does not count them as validated. These notes are not failures: the file is simply not checked.
+If the frontmatter block cannot be read, the script reports one of these messages and **skips every other check for that file**. Fix it, re-run, and the remaining problems for that file will appear.
 
 | Message | Why it fires | Fix |
 |---|---|---|
-| `NOTE: not a KB or workspace path, skipping: <path>` | The file is under `wiki/` but not inside a configured entity directory or `wiki/workspaces/`. | Move it into a configured directory or a workspace, or add the entity type to `_meta/wiki.config.yaml`. |
-| `NOTE: outside wiki/ and raw/, skipping: <path>` | The file is outside both validated zones. | Only files under `wiki/` and `raw/` are validated. |
+| `missing frontmatter` | Line 1 of the file is not exactly `---`. | Start the file with `---` on the very first line, with nothing before it (no blank line, no byte-order mark). |
+| `unclosed frontmatter` | The file has fewer than two lines that are exactly `---`. | Add the closing `---` line after the last field. |
+| `invalid frontmatter syntax` | The text between the markers is not valid YAML, is not a key/value mapping, or a key or value contains a control character. Typical causes: a stray prose line inside the block, an unclosed quote (`title: "Unclosed`), an invalid backslash escape inside double quotes (`"Invalid \q escape"`), or a malformed list (`tags: [ai,, software]`). | Use one `key: value` per line. Close every quote and bracket, quote strings that contain `:` or `#`, and write lists as `["a", "b"]`. Keep wikilinks in `related` quoted, as in the [schema examples](/schema). |
+| `YAML parser unavailable (ruby is required)` | The `ruby` command is not on `PATH`. The script parses YAML with Ruby's standard library and needs no gems. | Install Ruby or add it to `PATH`. |
 
 ## After fixing
 
