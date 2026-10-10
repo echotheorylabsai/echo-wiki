@@ -2,6 +2,7 @@
   "schema_version": 1,
   "integration_remote": "origin",
   "default_branch": "main",
+  "merge": "agent",
   "cloud_env_vars": [],
   "deadline_hours": {
     "S": 4,
