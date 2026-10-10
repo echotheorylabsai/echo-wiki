@@ -8,6 +8,8 @@ Echo Wiki is designed to be browsed in [Obsidian](https://obsidian.md) as a loca
 2. Open Obsidian → File → Open folder as vault
 3. Select the **`wiki/`** directory (not the repo root)
 
+> **Opened the repo root by mistake?** Obsidian creates a `.obsidian/` folder at the repo root. That folder is git-ignored, so nothing breaks. Close that vault and open `wiki/` instead.
+
 The vault comes pre-configured in `wiki/.obsidian/`:
 
 ## Pre-configured Settings
