@@ -2,6 +2,7 @@
 .env
 
 # Obsidian workspace (user-specific UI state)
+/.obsidian/
 wiki/.obsidian/workspace.json
 wiki/.obsidian/workspace-mobile.json
 wiki/.obsidian/core-plugins.json
