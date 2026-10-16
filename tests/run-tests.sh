@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Echo Wiki — hook test harness
-# Runs reindex.sh and validate.sh against fixture wikis and asserts on
+# Runs hooks against fixture wikis and asserts on
 # golden files, violation messages, and exit codes.
 # Usage: bash tests/run-tests.sh
 # Bash 3.2 compatible. LC_ALL=C for deterministic sorting.
@@ -39,6 +39,70 @@ assert_contains() { # haystack needle label
         *"$2"*) ok "$3" ;;
         *)      not_ok "$3" "output was: $(printf '%s' "$1" | head -4 | tr '\n' '|')" ;;
     esac
+}
+
+# --- token-count.sh cases ---------------------------------------------------
+
+new_token_fixture() {
+    FX="$(mktemp -d "${TMPDIR:-/tmp}/echo-wiki-test.XXXXXX")"
+    CLEANUP="$CLEANUP $FX"
+    mkdir -p "$FX/raw/nested" "$FX/wiki/nested"
+    git -C "$FX" init -q
+}
+
+test_token_count_populated() {
+    new_token_fixture
+    printf 'one two\nthree\n' > "$FX/raw/nested/source.md"
+    printf 'four five six seven\n' > "$FX/wiki/article.md"
+    printf 'eight\tnine ten\n' > "$FX/wiki/nested/another article.md"
+    printf 'these words must be ignored\n' > "$FX/raw/ignored.txt"
+    printf 'outside directories must be ignored\n' > "$FX/ignored.md"
+    local out expected
+    expected="[$(date +%Y-%m-%d)] Wiki Token Estimate
+  raw/        3 words  ~  3 tokens
+  wiki/       7 words  ~  9 tokens
+  TOTAL       10 words  ~  13 tokens
+
+  Context usage: ~0% of 1M window"
+    if out="$(cd "$FX/wiki/nested" && bash "$REPO/hooks/token-count.sh" 2>&1)"; then
+        if [ "$out" = "$expected" ]; then
+            ok "token-count populated: exact word and token totals"
+        else
+            not_ok "token-count populated: exact word and token totals" "$out"
+        fi
+        printf '%s\n\n' "$expected" > "$FX/expected.log"
+        assert_diff "$FX/expected.log" "$FX/output/reports/token-count.log" "token-count log: creates dated report with trailing blank line"
+        if out="$(cd "$FX" && bash "$REPO/hooks/token-count.sh" 2>&1)"; then
+            printf '%s\n\n' "$expected" >> "$FX/expected.log"
+            assert_diff "$FX/expected.log" "$FX/output/reports/token-count.log" "token-count log: second run appends without overwriting"
+        else
+            not_ok "token-count log: second run appends without overwriting" "$out"
+        fi
+    else
+        not_ok "token-count populated: script runs" "$out"
+    fi
+}
+
+test_token_count_empty() {
+    new_token_fixture
+    local out expected
+    expected="[$(date +%Y-%m-%d)] Wiki Token Estimate
+  raw/        0 words  ~  0 tokens
+  wiki/       0 words  ~  0 tokens
+  TOTAL       0 words  ~  0 tokens
+
+  Context usage: ~0.0% of 1M window"
+    if out="$(cd "$FX" && bash "$REPO/hooks/token-count.sh" 2>&1)"; then
+        if [ "$out" = "$expected" ]; then
+            ok "token-count empty: zero totals and context usage"
+        else
+            not_ok "token-count empty: zero totals and context usage" "$out"
+        fi
+        printf '%s\n\n' "$expected" > "$FX/expected.log"
+        assert_diff "$FX/expected.log" "$FX/output/reports/token-count.log" "token-count empty: logs zero report"
+    else
+        not_ok "token-count empty: script runs" "$out"
+    fi
 }
 
 # --- reindex.sh cases -------------------------------------------------------
@@ -894,6 +958,8 @@ test_precommit_integration() {
 
 # --- run --------------------------------------------------------------------
 
+test_token_count_populated
+test_token_count_empty
 test_reindex_populated
 test_reindex_empty
 test_reindex_parses_inline_yaml_comments
