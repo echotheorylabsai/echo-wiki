@@ -40,3 +40,7 @@ prompt — request.md
 ## Decisions
 2026-10-16 · Codex/GPT-6 · triage — Choose S; one test-runner change covers the hook. Why: Existing helpers support isolated fixtures.
 2026-10-16 · Codex/GPT-6 · triage — Merge risk is low. Why: Tests and task records only; no production behavior or data changes.
+2026-10-16 · Codex/GPT-6 · build — Correct populated percentage expectation to 0%. Why: bc renders rounded nonzero-input percentage as zero without decimal.
+
+## Friction
+2026-10-16 · Codex/GPT-6 · build — Edited expectation while C1 ran; harness rejected recording. Why: Checkout changed during check; rerun from committed files.

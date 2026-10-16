@@ -63,7 +63,7 @@ test_token_count_populated() {
   wiki/       7 words  ~  9 tokens
   TOTAL       10 words  ~  13 tokens
 
-  Context usage: ~0.0% of 1M window"
+  Context usage: ~0% of 1M window"
     if out="$(cd "$FX/wiki/nested" && bash "$REPO/hooks/token-count.sh" 2>&1)"; then
         if [ "$out" = "$expected" ]; then
             ok "token-count populated: exact word and token totals"
